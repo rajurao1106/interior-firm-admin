@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+<<<<<<< HEAD
 import { Eye, EyeOff, Lock, Mail, UserCircle, ShieldCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -55,6 +56,17 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
       {/* Background Decor */}
+=======
+import { Eye, EyeOff, Lock, Mail, Building2, UserCircle, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+
+export default function RegisterPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState("owner");
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#FDF3E3] rounded-full opacity-60" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#FDF3E3] rounded-full opacity-40" />
@@ -73,6 +85,7 @@ export default function RegisterPage() {
           <h2 className="text-[18px] font-bold text-[#1C1C1C] mb-1">Get started</h2>
           <p className="text-[13px] text-[#9A8F82] mb-6">Create your professional profile</p>
 
+<<<<<<< HEAD
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-[12px]">
               {error}
@@ -80,6 +93,9 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+=======
+          <div className="space-y-4">
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
             {/* Full Name Field */}
             <div>
               <label className="block text-[11px] font-bold text-[#6B6259] mb-1.5 uppercase tracking-wider">
@@ -88,18 +104,27 @@ export default function RegisterPage() {
               <div className="flex items-center gap-2 border border-[#EDE8DF] rounded-xl px-3 py-2.5 focus-within:border-[#C8922A] transition-colors">
                 <UserCircle size={16} className="text-[#9A8F82] shrink-0" />
                 <input
+<<<<<<< HEAD
                   required
                   name="full_name"
                   type="text"
                   placeholder="John Doe"
                   value={formData.full_name}
                   onChange={handleChange}
+=======
+                  type="text"
+                  placeholder="John Doe"
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
                   className="flex-1 text-[13px] text-[#1C1C1C] placeholder-[#9A8F82] outline-none bg-transparent"
                 />
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Role Selection */}
+=======
+            {/* Role Selection Field (ENUM Mapping) */}
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
             <div>
               <label className="block text-[11px] font-bold text-[#6B6259] mb-1.5 uppercase tracking-wider">
                 Assign Role
@@ -107,9 +132,14 @@ export default function RegisterPage() {
               <div className="flex items-center gap-2 border border-[#EDE8DF] rounded-xl px-3 py-2.5 focus-within:border-[#C8922A] transition-colors bg-white">
                 <ShieldCheck size={16} className="text-[#9A8F82] shrink-0" />
                 <select 
+<<<<<<< HEAD
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
+=======
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
                   className="flex-1 text-[13px] text-[#1C1C1C] outline-none bg-transparent cursor-pointer"
                 >
                   <option value="owner">Firm Owner (Full Access)</option>
@@ -128,12 +158,17 @@ export default function RegisterPage() {
               <div className="flex items-center gap-2 border border-[#EDE8DF] rounded-xl px-3 py-2.5 focus-within:border-[#C8922A] transition-colors">
                 <Mail size={16} className="text-[#9A8F82] shrink-0" />
                 <input
+<<<<<<< HEAD
                   required
                   name="email"
                   type="email"
                   placeholder="admin@yourfirm.com"
                   value={formData.email}
                   onChange={handleChange}
+=======
+                  type="email"
+                  placeholder="admin@yourfirm.com"
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
                   className="flex-1 text-[13px] text-[#1C1C1C] placeholder-[#9A8F82] outline-none bg-transparent"
                 />
               </div>
@@ -147,12 +182,17 @@ export default function RegisterPage() {
               <div className="flex items-center gap-2 border border-[#EDE8DF] rounded-xl px-3 py-2.5 focus-within:border-[#C8922A] transition-colors">
                 <Lock size={16} className="text-[#9A8F82] shrink-0" />
                 <input
+<<<<<<< HEAD
                   required
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
+=======
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
                   className="flex-1 text-[13px] text-[#1C1C1C] placeholder-[#9A8F82] outline-none bg-transparent"
                 />
                 <button
@@ -165,6 +205,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+<<<<<<< HEAD
             <button 
               disabled={isLoading}
               type="submit"
@@ -178,17 +219,29 @@ export default function RegisterPage() {
               ) : (
                 "Create Account"
               )}
+=======
+            <button className="w-full bg-[#C8922A] hover:bg-[#B07A20] text-white font-semibold text-[14px] py-3 rounded-xl transition-all shadow-md active:scale-[0.98] mt-2">
+              Create Account
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
             </button>
 
             <div className="pt-4 text-center border-t border-[#F5F2ED] mt-4">
               <p className="text-[13px] text-[#9A8F82]">
                 Already have an account?{" "}
+<<<<<<< HEAD
                 <Link href="/login" className="text-[#C8922A] font-semibold hover:underline">
+=======
+                <Link href="/" className="text-[#C8922A] font-semibold hover:underline">
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
                   Sign In
                 </Link>
               </p>
             </div>
+<<<<<<< HEAD
           </form>
+=======
+          </div>
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
         </div>
       </div>
     </div>

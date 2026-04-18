@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "interior-firm-crm",
+=======
+  "name": "interior-firm-admin",
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,16 +13,22 @@
     "lint": "eslint"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@tanstack/react-query": "^5.99.0",
     "axios": "^1.15.0",
     "lucide-react": "^1.8.0",
     "next": "16.2.2",
+=======
+    "lucide-react": "^1.8.0",
+    "next": "16.2.3",
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+<<<<<<< HEAD
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -26,5 +36,13 @@
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+=======
+    "@types/node": "25.6.0",
+    "@types/react": "19.2.14",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.3",
+    "tailwindcss": "^4"
+>>>>>>> 6c8ac3251c45ac69d0416d28f8bc0af4f72707a0
   }
 }
