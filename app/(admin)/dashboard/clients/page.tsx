@@ -2,24 +2,45 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { 
-  Plus, Search, Filter, MoreHorizontal, 
+import {
+  Search, MoreHorizontal,
   Building2, Phone, Mail, X, CreditCard, Loader2,
   Edit2, Trash2, UserPlus, Briefcase, ExternalLink,
   ChevronRight, MapPin
 } from "lucide-react";
+import {
+  getAllClients,
+  createClient,
+  updateClient,
+  deleteClient,
+  type Client,
+  type ClientFormData,
+} from "@/services/clientService";
 
-const BASE_URL = "http://127.0.0.1:8000/api/v1/clients/";
+type ClientUI = Client & {
+  name: string;
+  projects: number;
+  initial: string;
+};
+
+function toClientUI(client: Client): ClientUI {
+  return {
+    ...client,
+    name: client.full_name,
+    projects: client.project_count ?? 0,
+    initial: client.full_name.charAt(0).toUpperCase(),
+  };
+}
 
 export default function ClientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeMenu, setActiveMenu] = useState(null); 
-  
-  const [clients, setClients] = useState([]);
-  const [editingId, setEditingId] = useState(null);
+  const [activeMenu, setActiveMenu] = useState<string  | null>(null);
+
+  const [clients, setClients] = useState<ClientUI[]>([]);
+  const [editingId, setEditingId] = useState<string  | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -29,22 +50,11 @@ export default function ClientsPage() {
     gstin: ""
   });
 
-  // Fetching Logic
   const fetchClients = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(BASE_URL);
-      if (!response.ok) throw new Error("Network response was not ok");
-      const data = await response.json();
-      
-      const results = data.results || data;
-      const formattedClients = results.map(client => ({
-        ...client,
-        name: client.full_name,
-        projects: client.project_count || 0,
-        initial: client.full_name.charAt(0).toUpperCase()
-      }));
-      setClients(formattedClients);
+      const results = await getAllClients();
+      setClients(results.map(toClientUI));
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
@@ -59,17 +69,10 @@ export default function ClientsPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ 
-      full_name: "", 
-      email: "", 
-      phone: "", 
-      billing_address: "", 
-      site_address: "", 
-      gstin: "" 
-    });
+    setFormData({ full_name: "", email: "", phone: "", billing_address: "", site_address: "", gstin: "" });
   };
 
-  const handleEditClick = (client) => {
+  const handleEditClick = (client: ClientUI) => {
     setEditingId(client.id);
     setFormData({
       full_name: client.full_name,
@@ -83,46 +86,37 @@ export default function ClientsPage() {
     setActiveMenu(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    const url = editingId ? `${BASE_URL}${editingId}/` : BASE_URL;
-    const method = editingId ? "PUT" : "POST";
-
+    const payload: ClientFormData = { ...formData };
     try {
-      const response = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        await fetchClients();
-        closeModal();
+      if (editingId) {
+        await updateClient(editingId, payload);
       } else {
-        const err = await response.json();
-        alert("Error: " + JSON.stringify(err));
+        await createClient(payload);
       }
+      await fetchClients();
+      closeModal();
     } catch (error) {
-      alert("Connection failed.");
+      alert("Error: " + (error instanceof Error ? error.message : "Connection failed."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this client? This action cannot be undone.")) return;
     try {
-      const response = await fetch(`${BASE_URL}${id}/`, { method: "DELETE" });
-      if (response.ok) fetchClients();
+      await deleteClient(id);
+      await fetchClients();
     } catch (error) {
-      alert("Delete failed.");
+      alert("Delete failed: " + (error instanceof Error ? error.message : "Unknown error"));
     }
     setActiveMenu(null);
   };
 
-  const filteredClients = clients.filter(c => 
+  const filteredClients = clients.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.phone?.includes(searchQuery)
@@ -139,16 +133,16 @@ export default function ClientsPage() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F82]" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search clients..." 
+            <input
+              type="text"
+              placeholder="Search clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 py-2.5 bg-white border border-[#EDE8DF] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8922A]/20 focus:border-[#C8922A] w-64 transition-all"
             />
           </div>
-          <button 
-            onClick={() => { closeModal(); setIsModalOpen(true); }} 
+          <button
+            onClick={() => { closeModal(); setIsModalOpen(true); }}
             className="flex items-center gap-2 bg-[#C8922A] hover:bg-[#B07A20] text-white text-[14px] font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
           >
             <UserPlus size={18} /> Add Client
@@ -156,7 +150,7 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Stats Cards (Visual Enhancement) */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-5 rounded-2xl border border-[#EDE8DF] shadow-sm">
           <p className="text-[#9A8F82] text-xs font-bold uppercase tracking-wider">Total Clients</p>
@@ -228,11 +222,11 @@ export default function ClientsPage() {
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-[12px] text-[#6B6259] font-medium">
-                          <div className="p-1 bg-[#FAF8F5] rounded"><Mail size={12} className="text-[#9A8F82]" /></div> 
+                          <div className="p-1 bg-[#FAF8F5] rounded"><Mail size={12} className="text-[#9A8F82]" /></div>
                           {c.email || "No email"}
                         </div>
                         <div className="flex items-center gap-2 text-[12px] text-[#6B6259] font-medium">
-                          <div className="p-1 bg-[#FAF8F5] rounded"><Phone size={12} className="text-[#9A8F82]" /></div> 
+                          <div className="p-1 bg-[#FAF8F5] rounded"><Phone size={12} className="text-[#9A8F82]" /></div>
                           {c.phone || "No phone"}
                         </div>
                       </div>
@@ -251,26 +245,26 @@ export default function ClientsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right relative">
-                      <button 
+                      <button
                         onClick={() => setActiveMenu(activeMenu === c.id ? null : c.id)}
                         className={`p-2 rounded-xl transition-all ${activeMenu === c.id ? 'bg-[#1C1C1C] text-white shadow-md' : 'text-[#9A8F82] hover:bg-[#EDE8DF] hover:text-[#1C1C1C]'}`}
                       >
                         <MoreHorizontal size={18} />
                       </button>
-                      
+
                       {activeMenu === c.id && (
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)}></div>
                           <div className="absolute right-6 mt-2 z-50 w-44 bg-white border border-[#EDE8DF] rounded-2xl shadow-2xl py-2 animate-in fade-in zoom-in duration-200">
                             <Link href={`/dashboard/clients/${c.id}`} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-[#1C1C1C] hover:bg-[#FAF8F5]">
-                              <ExternalLink size={15} className="text-[#C8922A]"/> View Profile
+                              <ExternalLink size={15} className="text-[#C8922A]" /> View Profile
                             </Link>
                             <button onClick={() => handleEditClick(c)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-[#1C1C1C] hover:bg-[#FAF8F5]">
-                              <Edit2 size={15} className="text-blue-500"/> Edit Client
+                              <Edit2 size={15} className="text-blue-500" /> Edit Client
                             </button>
                             <div className="h-px bg-[#F5F2ED] my-1 mx-2"></div>
                             <button onClick={() => handleDelete(c.id)} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50">
-                              <Trash2 size={15}/> Delete
+                              <Trash2 size={15} /> Delete
                             </button>
                           </div>
                         </>
@@ -309,13 +303,13 @@ export default function ClientsPage() {
                 <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Full Legal Name *</label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F82]" size={16} />
-                  <input 
-                    required 
-                    type="text" 
+                  <input
+                    required
+                    type="text"
                     placeholder="e.g. Rajesh Kumar"
-                    value={formData.full_name} 
-                    onChange={(e) => setFormData({...formData, full_name: e.target.value})} 
-                    className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] focus:ring-4 focus:ring-[#C8922A]/5 transition-all" 
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] focus:ring-4 focus:ring-[#C8922A]/5 transition-all"
                   />
                 </div>
               </div>
@@ -323,22 +317,22 @@ export default function ClientsPage() {
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     placeholder="hello@company.com"
-                    value={formData.email} 
-                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all" 
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Phone Number</label>
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     placeholder="+91 00000 00000"
-                    value={formData.phone} 
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all" 
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all"
                   />
                 </div>
               </div>
@@ -347,12 +341,12 @@ export default function ClientsPage() {
                 <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">GST Number (Optional)</label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F82]" size={16} />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="22AAAAA0000A1Z5"
-                    value={formData.gstin} 
-                    onChange={(e) => setFormData({...formData, gstin: e.target.value.toUpperCase()})} 
-                    className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-bold uppercase outline-none focus:border-[#C8922A] transition-all" 
+                    value={formData.gstin}
+                    onChange={(e) => setFormData({ ...formData, gstin: e.target.value.toUpperCase() })}
+                    className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-bold uppercase outline-none focus:border-[#C8922A] transition-all"
                   />
                 </div>
               </div>
@@ -360,43 +354,41 @@ export default function ClientsPage() {
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Billing Address</label>
-                  <textarea 
-                    rows={3} 
+                  <textarea
+                    rows={3}
                     placeholder="Enter complete billing address"
-                    value={formData.billing_address} 
-                    onChange={(e) => setFormData({...formData, billing_address: e.target.value})} 
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none resize-none focus:border-[#C8922A] transition-all" 
+                    value={formData.billing_address}
+                    onChange={(e) => setFormData({ ...formData, billing_address: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none resize-none focus:border-[#C8922A] transition-all"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Site Address</label>
-                  <textarea 
-                    rows={3} 
+                  <textarea
+                    rows={3}
                     placeholder="Enter project site address"
-                    value={formData.site_address} 
-                    onChange={(e) => setFormData({...formData, site_address: e.target.value})} 
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none resize-none focus:border-[#C8922A] transition-all" 
+                    value={formData.site_address}
+                    onChange={(e) => setFormData({ ...formData, site_address: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none resize-none focus:border-[#C8922A] transition-all"
                   />
                 </div>
               </div>
 
               <div className="pt-6 border-t border-[#F5F2ED] flex justify-end items-center gap-4">
-                <button 
-                  type="button" 
-                  onClick={closeModal} 
+                <button
+                  type="button"
+                  onClick={closeModal}
                   className="px-6 py-3 text-[14px] font-bold text-[#6B6259] hover:text-[#1C1C1C] transition-colors"
                 >
                   Discard
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting} 
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
                   className="px-8 py-3 bg-[#C8922A] text-white text-[14px] font-black rounded-xl shadow-lg shadow-[#C8922A]/20 disabled:opacity-50 active:scale-95 transition-all flex items-center gap-2"
                 >
                   {isSubmitting ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" /> Saving Changes...
-                    </>
+                    <><Loader2 size={18} className="animate-spin" /> Saving Changes...</>
                   ) : (
                     editingId ? "Update Client" : "Create Client"
                   )}
