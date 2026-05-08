@@ -1,115 +1,3 @@
-// // ============================================================
-// // 📊 QUOTATION SERVICE
-// // Sare Quotation-related API calls yahan hain.
-// // ============================================================
-
-// import API_BASE_URL from "@/lib/config";
-
-// const QUOTATIONS_URL = `${API_BASE_URL}/quotations/`;
-
-// // ─── Types ────────────────────────────────────────────────────────────────────
-
-// export type Quotation = {
-//   id: string;
-//   quote_number: string;
-//   version: number;
-//   client_name: string;
-//   project_name: string;
-//   grand_total: string;
-//   status: string;
-//   created_at?: string;
-//   [key: string]: any;
-// };
-
-// // ─── Helper ───────────────────────────────────────────────────────────────────
-
-// function getAuthHeaders(): HeadersInit {
-//   const token =
-//     typeof window !== "undefined" ? localStorage.getItem("token") : null;
-//   return {
-//     "Content-Type": "application/json",
-//     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//   };
-// }
-
-// function handleUnauthorized(status: number) {
-//   if (status === 401 && typeof window !== "undefined") {
-//     localStorage.removeItem("token");
-//     window.location.href = "/login";
-//   }
-// }
-
-// // ─── GET: Sare quotations lao ─────────────────────────────────────────────────
-
-// export async function getAllQuotations(): Promise<Quotation[]> {
-//   const response = await fetch(QUOTATIONS_URL, {
-//     method: "GET",
-//     headers: getAuthHeaders(),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) throw new Error(`Quotations fetch failed: ${response.status}`);
-//   const data = await response.json();
-//   return (data.results ?? data) as Quotation[];
-// }
-
-// // ─── GET: Single quotation lao ────────────────────────────────────────────────
-
-// export async function getQuotationById(id: string): Promise<Quotation> {
-//   const response = await fetch(`${QUOTATIONS_URL}${id}/`, {
-//     method: "GET",
-//     headers: getAuthHeaders(),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) throw new Error(`Quotation fetch failed: ${response.status}`);
-//   return (await response.json()) as Quotation;
-// }
-
-// // ─── POST: Naya quotation banao ───────────────────────────────────────────────
-
-// export async function createQuotation(data: Record<string, any>): Promise<Quotation> {
-//   const response = await fetch(QUOTATIONS_URL, {
-//     method: "POST",
-//     headers: getAuthHeaders(),
-//     body: JSON.stringify(data),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) {
-//     const err = await response.json();
-//     throw new Error(JSON.stringify(err));
-//   }
-//   return (await response.json()) as Quotation;
-// }
-
-// // ─── PUT: Quotation update karo ───────────────────────────────────────────────
-
-// export async function updateQuotation(id: string, data: Record<string, any>): Promise<Quotation> {
-//   const response = await fetch(`${QUOTATIONS_URL}${id}/`, {
-//     method: "PUT",
-//     headers: getAuthHeaders(),
-//     body: JSON.stringify(data),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) {
-//     const err = await response.json();
-//     throw new Error(JSON.stringify(err));
-//   }
-//   return (await response.json()) as Quotation;
-// }
-
-// // ─── DELETE: Quotation delete karo ────────────────────────────────────────────
-
-// export async function deleteQuotation(id: string): Promise<void> {
-//   const response = await fetch(`${QUOTATIONS_URL}${id}/`, {
-//     method: "DELETE",
-//     headers: getAuthHeaders(),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
-// }
-// ============================================================
-// 📊 QUOTATION SERVICE — Fixed token key + full API coverage
-// ============================================================
-
 import API_BASE_URL from "@/lib/config";
 
 const QUOTATIONS_URL = `${API_BASE_URL}/quotations/`;
@@ -157,7 +45,11 @@ function getToken(): string | null {
 
 function getAuthHeaders(extra: HeadersInit = {}): HeadersInit {
   const token = getToken();
-  return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
 }
 
 function handleUnauthorized(status: number) {
@@ -258,4 +150,22 @@ export async function downloadQuotationPdf(id: string): Promise<Blob> {
   }
 
   return res.blob();
+}
+// quotationService.ts
+export async function sendQuotationEmail(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/notifications/email/quotation/${id}/send/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  handleUnauthorized(res.status);
+  if (!res.ok) throw new Error("Email failed");
+}
+
+export async function sendQuotationWhatsApp(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/notifications/whatsapp/quotation/${id}/send/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  handleUnauthorized(res.status);
+  if (!res.ok) throw new Error("WhatsApp failed");
 }

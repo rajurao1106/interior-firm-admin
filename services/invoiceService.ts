@@ -1,126 +1,3 @@
-// // ============================================================
-// // 🧾 INVOICE SERVICE
-// // Sare Invoice-related API calls yahan hain.
-// // ============================================================
-
-// import API_BASE_URL from "@/lib/config";
-
-// const INVOICES_URL = `${API_BASE_URL}/invoices/`;
-
-// // ─── Types ────────────────────────────────────────────────────────────────────
-
-// export type Invoice = {
-//   id: string;
-//   project: string;
-//   project_name: string;
-//   client_name: string;
-//   quotation: string;
-//   invoice_number: string;
-//   invoice_type: string;
-//   invoice_date: string;
-//   due_date: string;
-//   status: string;
-//   milestone_label: string;
-//   milestone_percentage?: string;
-//   grand_total: string;
-//   amount_paid?: string;
-//   balance_due?: string;
-//   notes?: string;
-// };
-
-// export type InvoiceFormData = {
-//   project: string;
-//   quotation: string;
-//   project_name: string;
-//   client_name: string;
-//   invoice_number: string;
-//   invoice_type: string;
-//   invoice_date: string;
-//   due_date: string;
-//   status: string;
-//   milestone_label: string;
-//   milestone_percentage: string;
-//   grand_total: string;
-//   notes: string;
-// };
-
-// // ─── Helper ───────────────────────────────────────────────────────────────────
-
-// function getAuthHeaders(): HeadersInit {
-//   const token =
-//     typeof window !== "undefined" ? localStorage.getItem("token") : null;
-//   return {
-//     "Content-Type": "application/json",
-//     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//   };
-// }
-
-// function handleUnauthorized(status: number) {
-//   if (status === 401 && typeof window !== "undefined") {
-//     localStorage.removeItem("token");
-//     window.location.href = "/login";
-//   }
-// }
-
-// // ─── GET: Sare invoices lao ───────────────────────────────────────────────────
-
-// export async function getAllInvoices(): Promise<Invoice[]> {
-//   const response = await fetch(INVOICES_URL, {
-//     method: "GET",
-//     headers: getAuthHeaders(),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) throw new Error(`Invoices fetch failed: ${response.status}`);
-//   const data = await response.json();
-//   return (data.results ?? data) as Invoice[];
-// }
-
-// // ─── POST: Naya invoice banao ─────────────────────────────────────────────────
-
-// export async function createInvoice(data: InvoiceFormData): Promise<Invoice> {
-//   const response = await fetch(INVOICES_URL, {
-//     method: "POST",
-//     headers: getAuthHeaders(),
-//     body: JSON.stringify(data),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) {
-//     const err = await response.json();
-//     throw new Error(JSON.stringify(err));
-//   }
-//   return (await response.json()) as Invoice;
-// }
-
-// // ─── PUT: Invoice update karo ─────────────────────────────────────────────────
-
-// export async function updateInvoice(id: string, data: Partial<InvoiceFormData>): Promise<Invoice> {
-//   const response = await fetch(`${INVOICES_URL}${id}/`, {
-//     method: "PUT",
-//     headers: getAuthHeaders(),
-//     body: JSON.stringify(data),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) {
-//     const err = await response.json();
-//     throw new Error(JSON.stringify(err));
-//   }
-//   return (await response.json()) as Invoice;
-// }
-
-// // ─── DELETE: Invoice delete karo ──────────────────────────────────────────────
-
-// export async function deleteInvoice(id: string): Promise<void> {
-//   const response = await fetch(`${INVOICES_URL}${id}/`, {
-//     method: "DELETE",
-//     headers: getAuthHeaders(),
-//   });
-//   handleUnauthorized(response.status);
-//   if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
-// }
-
-// ============================================================
-// 🧾 INVOICE SERVICE — Full API coverage, correct token logic
-// ============================================================
 
 import API_BASE_URL from "@/lib/config";
 
@@ -283,25 +160,13 @@ export async function deleteInvoice(id: string): Promise<void> {
 // ─── POST: Mark as sent ───────────────────────────────────────────────────────
 
 export async function sendInvoice(id: string): Promise<Invoice> {
-  const res = await fetch(`${INVOICES_URL}${id}/send/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-  });
-  handleUnauthorized(res.status);
-  if (!res.ok) throw new Error("Send failed");
-  return res.json() as Promise<Invoice>;
+  return updateInvoice(id, { status: "issued" } as any);
 }
 
 // ─── POST: Mark as paid ───────────────────────────────────────────────────────
 
 export async function markInvoicePaid(id: string): Promise<Invoice> {
-  const res = await fetch(`${INVOICES_URL}${id}/mark_paid/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-  });
-  handleUnauthorized(res.status);
-  if (!res.ok) throw new Error("Mark paid failed");
-  return res.json() as Promise<Invoice>;
+  return updateInvoice(id, { status: "paid" } as any);
 }
 
 // ─── GET: Download PDF (auth header required) ────────────────────────────────

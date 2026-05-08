@@ -10,6 +10,7 @@ const SETTINGS_URL = `${API_BASE_URL}/settings`;
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type GSTData = {
+  gst_enabled?: boolean; 
   firm_gstin?: string;
   place_of_supply?: string;
   default_cgst?: number;

@@ -234,6 +234,23 @@ export async function getAllProposals(): Promise<Proposal[]> {
   return (data?.results ?? data) as Proposal[];
 }
 
+// proposalService.ts
+
+export async function getProposalById(id: string): Promise<Proposal> {
+  const res = await fetch(`${PROPOSALS_URL}${id}/`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+
+  handleUnauthorized(res.status);
+
+  const data = await safeJson(res);
+  if (!res.ok) {
+    throw new Error(data?.detail || `Proposal fetch failed: ${res.status}`);
+  }
+
+  return data as Proposal;
+}
 export async function getProposalTemplates(): Promise<ProposalTemplate[]> {
   const res = await fetch(`${PROPOSALS_URL}templates/`, { method: "GET", headers: authHeaders() });
   handleUnauthorized(res.status);

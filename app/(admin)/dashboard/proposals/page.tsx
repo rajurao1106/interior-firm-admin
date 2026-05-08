@@ -1,448 +1,3 @@
-// "use client";
-
-// import React, { useState, useEffect, useCallback } from "react";
-// import { Plus, Search, FileText, Loader2, X, Trash2, Edit3, Save, ChevronDown } from "lucide-react";
-// import {
-//   getAllProposals, getProposalTemplates, createProposal, updateProposal, deleteProposal,
-//   type Proposal, type ProposalFormData, type ProposalTemplate,
-// } from "@/services/proposalService";
-// import { getProjectsByClient } from "@/services/projectService";
-// import type { Project } from "@/services/projectService";
-
-// const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-//   draft:    { label: "Draft",    color: "#6B6259", bg: "#F5F2ED" },
-//   sent:     { label: "Sent",     color: "#3B82F6", bg: "#EFF6FF" },
-//   accepted: { label: "Accepted", color: "#10B981", bg: "#ECFDF5" },
-//   rejected: { label: "Rejected", color: "#EF4444", bg: "#FEF2F2" },
-// };
-
-// // ─── Default CLIENT_ID — apna actual UUID daalo yahan ──────────────────────────
-// const DEFAULT_CLIENT_ID = "b9879cb1-bb1a-47aa-bfcf-f8cdb04dcb2e";
-
-// const blankForm: ProposalFormData = {
-//   project: "",
-//   template: "",
-//   prop_number: "",
-//   title: "",
-//   content: "",
-//   status: "draft",
-//   valid_until: "",
-//   notes: "",
-// };
-
-// export default function ProposalsPage() {
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [searchQuery, setSearchQuery]   = useState("");
-//   const [editId, setEditId]             = useState<string | null>(null);
-//   const [proposals, setProposals]       = useState<Proposal[]>([]);
-//   const [templates, setTemplates]       = useState<ProposalTemplate[]>([]);
-//   const [projects, setProjects]         = useState<Project[]>([]);
-//   const [loading, setLoading]           = useState(true);
-//   const [saving, setSaving]             = useState(false);
-//   const [formData, setFormData]         = useState<ProposalFormData>(blankForm);
-
-//   // Optional fields toggle state
-//   const [showTemplate,   setShowTemplate]   = useState(false);
-//   const [showValidUntil, setShowValidUntil] = useState(false);
-//   const [showNotes,      setShowNotes]      = useState(false);
-
-//   // ─── Fetch all data ─────────────────────────────────────────────────────────
-//   const fetchData = useCallback(async () => {
-//     setLoading(true);
-//     try {
-//       const [proposalList, templateList, projectList] = await Promise.all([
-//         getAllProposals(),
-//         getProposalTemplates(),
-//         getProjectsByClient(DEFAULT_CLIENT_ID),
-//       ]);
-//       setProposals(proposalList);
-//       setTemplates(templateList);
-//       setProjects(projectList);
-//     } catch (e) {
-//       console.error("Fetch error:", e);
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, []);
-
-//   useEffect(() => { fetchData(); }, [fetchData]);
-
-//   // ─── Template auto-fill ──────────────────────────────────────────────────────
-//   const handleTemplateSelect = (templateId: string) => {
-//     const tpl = templates.find(t => t.id === templateId);
-//     setFormData(prev => ({
-//       ...prev,
-//       template: templateId,
-//       content: tpl?.content ?? prev.content,
-//     }));
-//   };
-
-//   // ─── Modal helpers ────────────────────────────────────────────────────────────
-//   const openNew = () => {
-//     setFormData(blankForm);
-//     setEditId(null);
-//     setShowTemplate(false);
-//     setShowValidUntil(false);
-//     setShowNotes(false);
-//     setIsModalOpen(true);
-//   };
-
-//   const openEdit = (p: Proposal) => {
-//     setFormData({
-//       project:     p.project,
-//       template:    p.template ?? "",
-//       prop_number: p.prop_number,
-//       title:       p.title,
-//       content:     p.content,
-//       status:      p.status,
-//       valid_until: p.valid_until ?? "",
-//       notes:       p.notes ?? "",
-//     });
-//     setEditId(p.id);
-//     setShowTemplate(!!p.template);
-//     setShowValidUntil(!!p.valid_until);
-//     setShowNotes(!!p.notes);
-//     setIsModalOpen(true);
-//   };
-
-//   const closeModal = () => {
-//     setIsModalOpen(false);
-//     setEditId(null);
-//     setFormData(blankForm);
-//   };
-
-//   // ─── Submit ──────────────────────────────────────────────────────────────────
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setSaving(true);
-//     // Strip empty optional fields so backend doesn't complain
-//     const payload: ProposalFormData = {
-//       ...formData,
-//       template:    showTemplate   ? formData.template    : "",
-//       valid_until: showValidUntil ? formData.valid_until : "",
-//       notes:       showNotes      ? formData.notes       : "",
-//     };
-//     try {
-//       if (editId) { await updateProposal(editId, payload); }
-//       else        { await createProposal(payload); }
-//       await fetchData();
-//       closeModal();
-//     } catch (err: any) {
-//       alert("Error: " + err.message);
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   const handleDelete = async (id: string) => {
-//     if (!confirm("Delete this proposal?")) return;
-//     try {
-//       await deleteProposal(id);
-//       setProposals(prev => prev.filter(p => p.id !== id));
-//     } catch (err: any) {
-//       alert("Delete failed: " + err.message);
-//     }
-//   };
-
-//   const filtered = proposals.filter(p =>
-//     p.client_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//     p.prop_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//     p.title?.toLowerCase().includes(searchQuery.toLowerCase())
-//   );
-
-//   return (
-//     <div className="min-h-screen bg-[#FCFBF9] p-6 md:p-10 font-sans text-[#1C1C1C]">
-
-//       {/* ─── Header ─────────────────────────────────────────────────────────── */}
-//       <div className="flex justify-between items-end mb-10">
-//         <div>
-//           <h1 className="text-3xl font-black tracking-tighter">Proposals</h1>
-//           <p className="text-[#9A8F82] font-medium">Create and manage client proposals</p>
-//         </div>
-//         <button onClick={openNew} className="bg-[#C8922A] hover:bg-[#B07A20] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#C8922A]/20">
-//           <Plus size={20} strokeWidth={3} /> New Proposal
-//         </button>
-//       </div>
-
-//       {/* ─── Table ──────────────────────────────────────────────────────────── */}
-//       <div className="bg-white border border-[#EDE8DF] rounded-[32px] overflow-hidden shadow-sm">
-//         <div className="p-6 border-b border-[#EDE8DF]">
-//           <div className="relative">
-//             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A8F82]" size={18} />
-//             <input type="text" placeholder="Search by client, number, or title..." className="w-full pl-12 pr-4 py-3 bg-[#FAF8F5] rounded-xl outline-none focus:ring-2 focus:ring-[#C8922A]/10" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-//           </div>
-//         </div>
-
-//         <div className="overflow-x-auto">
-//           <table className="w-full text-left">
-//             <thead>
-//               <tr className="bg-[#FAF8F5] border-b border-[#EDE8DF] text-[11px] font-black text-[#9A8F82] uppercase tracking-[2px]">
-//                 <th className="px-8 py-5">Document</th>
-//                 <th className="px-8 py-5">Client / Project</th>
-//                 <th className="px-8 py-5">Status</th>
-//                 <th className="px-8 py-5">Valid Until</th>
-//                 <th className="px-8 py-5 text-right">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody className="divide-y divide-[#F5F2ED]">
-//               {loading ? (
-//                 <tr><td colSpan={5} className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-[#C8922A]" /></td></tr>
-//               ) : filtered.length === 0 ? (
-//                 <tr><td colSpan={5} className="py-20 text-center text-[#9A8F82]">No proposals found.</td></tr>
-//               ) : filtered.map(p => (
-//                 <tr key={p.id} className="hover:bg-[#FCFBF9] transition-colors group">
-//                   <td className="px-8 py-6">
-//                     <div className="flex items-center gap-4">
-//                       <div className="w-10 h-10 bg-[#FDF3E3] rounded-xl flex items-center justify-center text-[#C8922A]"><FileText size={18} /></div>
-//                       <div>
-//                         <p className="font-bold text-[14px]">#{p.prop_number}</p>
-//                         <p className="text-[12px] text-[#9A8F82]">{p.title}</p>
-//                       </div>
-//                     </div>
-//                   </td>
-//                   <td className="px-8 py-6">
-//                     <p className="font-bold text-[14px]">{p.client_name || "—"}</p>
-//                     <p className="text-[12px] text-[#6B6259]">{p.project_name || "—"}</p>
-//                   </td>
-//                   <td className="px-8 py-6">
-//                     <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-//                       style={{ backgroundColor: statusConfig[p.status]?.bg, color: statusConfig[p.status]?.color }}>
-//                       {statusConfig[p.status]?.label ?? p.status}
-//                     </span>
-//                   </td>
-//                   <td className="px-8 py-6 text-[13px] text-[#6B6259]">
-//                     {p.valid_until || "—"}
-//                   </td>
-//                   <td className="px-8 py-6 text-right">
-//                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-//                       <button onClick={() => openEdit(p)} className="p-2 hover:bg-white border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#C8922A] shadow-sm"><Edit3 size={14} /></button>
-//                       <button onClick={() => handleDelete(p.id)} className="p-2 hover:bg-white border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-red-500 shadow-sm"><Trash2 size={14} /></button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-
-//       {/* ─── Create / Edit Modal ─────────────────────────────────────────────── */}
-//       {isModalOpen && (
-//         <div className="fixed inset-0 bg-[#1C1C1C]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-//           <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh]">
-
-//             {/* Modal Header */}
-//             <div className="p-6 border-b border-[#EDE8DF] flex justify-between items-center bg-[#FCFBF9] rounded-t-[32px] flex-shrink-0">
-//               <div>
-//                 <h2 className="font-black text-xl">{editId ? "Edit Proposal" : "New Proposal"}</h2>
-//                 <p className="text-[12px] text-[#9A8F82] mt-0.5">Fill in the required fields below</p>
-//               </div>
-//               <button onClick={closeModal} className="text-[#9A8F82] hover:text-black transition-colors"><X size={24} /></button>
-//             </div>
-
-//             {/* Modal Body — Scrollable */}
-//             <div className="p-8 overflow-y-auto flex-1">
-//               <form onSubmit={handleSubmit} className="space-y-6" id="proposal-form">
-
-//                 {/* ── REQUIRED FIELDS ─────────────────────────────────────── */}
-//                 <div>
-//                   <p className="text-[11px] font-black text-[#C8922A] uppercase tracking-[2px] mb-4 flex items-center gap-2">
-//                     <span className="w-4 h-px bg-[#C8922A] block" /> Required Fields
-//                   </p>
-//                   <div className="space-y-4">
-
-//                     {/* Project */}
-//                     <div className="space-y-1.5">
-//                       <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">Project <span className="text-red-400">*</span></label>
-//                       <div className="relative">
-//                         <select
-//                           required
-//                           value={formData.project}
-//                           onChange={e => setFormData({ ...formData, project: e.target.value })}
-//                           className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none text-[14px] text-[#1C1C1C]"
-//                         >
-//                           <option value="">Select a project</option>
-//                           {projects.map(p => (
-//                             <option key={p.id} value={p.id}>{p.name} {p.client_name ? `— ${p.client_name}` : ""}</option>
-//                           ))}
-//                         </select>
-//                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none" size={16} />
-//                       </div>
-//                     </div>
-
-//                     {/* Prop Number */}
-//                     <div className="space-y-1.5">
-//                       <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">Proposal Number <span className="text-red-400">*</span></label>
-//                       <input
-//                         required
-//                         type="text"
-//                         placeholder="e.g. PROP-2024-001"
-//                         value={formData.prop_number}
-//                         onChange={e => setFormData({ ...formData, prop_number: e.target.value })}
-//                         className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] text-[14px] font-mono"
-//                       />
-//                     </div>
-
-//                     {/* Title */}
-//                     <div className="space-y-1.5">
-//                       <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">Title <span className="text-red-400">*</span></label>
-//                       <input
-//                         required
-//                         type="text"
-//                         placeholder="e.g. Interior Design Proposal for 3BHK Apartment"
-//                         value={formData.title}
-//                         onChange={e => setFormData({ ...formData, title: e.target.value })}
-//                         className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] text-[14px]"
-//                       />
-//                     </div>
-
-//                     {/* Content */}
-//                     <div className="space-y-1.5">
-//                       <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">
-//                         Content <span className="text-red-400">*</span>
-//                         <span className="ml-2 text-[10px] font-medium text-[#9A8F82] normal-case tracking-normal">Placeholders: {"{{client_name}}"}, {"{{project_name}}"}, {"{{firm_name}}"}</span>
-//                       </label>
-//                       <textarea
-//                         required
-//                         rows={6}
-//                         placeholder="Write your full proposal content here. Use {{client_name}}, {{project_name}}, {{firm_name}} as dynamic placeholders..."
-//                         value={formData.content}
-//                         onChange={e => setFormData({ ...formData, content: e.target.value })}
-//                         className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] text-[14px] resize-none font-mono"
-//                       />
-//                     </div>
-
-//                     {/* Status */}
-//                     <div className="space-y-1.5">
-//                       <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">Status <span className="text-red-400">*</span></label>
-//                       <div className="grid grid-cols-4 gap-2">
-//                         {(["draft", "sent", "accepted", "rejected"] as const).map(s => (
-//                           <button
-//                             key={s}
-//                             type="button"
-//                             onClick={() => setFormData({ ...formData, status: s })}
-//                             className="py-2.5 rounded-xl text-[12px] font-bold capitalize border-2 transition-all"
-//                             style={formData.status === s ? {
-//                               backgroundColor: statusConfig[s].bg,
-//                               color: statusConfig[s].color,
-//                               borderColor: statusConfig[s].color,
-//                             } : {
-//                               backgroundColor: "transparent",
-//                               color: "#9A8F82",
-//                               borderColor: "#EDE8DF",
-//                             }}
-//                           >
-//                             {statusConfig[s].label}
-//                           </button>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-
-//                 {/* ── OPTIONAL FIELDS ─────────────────────────────────────── */}
-//                 <div>
-//                   <p className="text-[11px] font-black text-[#9A8F82] uppercase tracking-[2px] mb-3 flex items-center gap-2">
-//                     <span className="w-4 h-px bg-[#9A8F82] block" /> Optional Fields
-//                   </p>
-//                   <div className="space-y-2">
-
-//                     {/* Template toggle */}
-//                     <div className="border border-[#EDE8DF] rounded-xl overflow-hidden">
-//                       <button type="button" onClick={() => setShowTemplate(v => !v)}
-//                         className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED] transition-colors">
-//                         <span className="text-[13px] font-semibold text-[#6B6259]">📄 Template</span>
-//                         <span className="text-[11px] text-[#C8922A] font-bold">{showTemplate ? "Remove" : "+ Add"}</span>
-//                       </button>
-//                       {showTemplate && (
-//                         <div className="px-4 py-3 border-t border-[#EDE8DF]">
-//                           {templates.length === 0 ? (
-//                             <p className="text-[13px] text-[#9A8F82] italic">No templates found. Create templates in your backend first.</p>
-//                           ) : (
-//                             <div className="relative">
-//                               <select
-//                                 value={formData.template}
-//                                 onChange={e => handleTemplateSelect(e.target.value)}
-//                                 className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none text-[14px]"
-//                               >
-//                                 <option value="">No template</option>
-//                                 {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-//                               </select>
-//                               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none" size={16} />
-//                               {formData.template && (
-//                                 <p className="text-[11px] text-[#9A8F82] mt-1">✓ Template selected — content has been auto-filled above</p>
-//                               )}
-//                             </div>
-//                           )}
-//                         </div>
-//                       )}
-//                     </div>
-
-//                     {/* Valid Until toggle */}
-//                     <div className="border border-[#EDE8DF] rounded-xl overflow-hidden">
-//                       <button type="button" onClick={() => setShowValidUntil(v => !v)}
-//                         className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED] transition-colors">
-//                         <span className="text-[13px] font-semibold text-[#6B6259]">📅 Valid Until</span>
-//                         <span className="text-[11px] text-[#C8922A] font-bold">{showValidUntil ? "Remove" : "+ Add"}</span>
-//                       </button>
-//                       {showValidUntil && (
-//                         <div className="px-4 py-3 border-t border-[#EDE8DF]">
-//                           <input
-//                             type="date"
-//                             value={formData.valid_until}
-//                             onChange={e => setFormData({ ...formData, valid_until: e.target.value })}
-//                             className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] text-[14px]"
-//                           />
-//                         </div>
-//                       )}
-//                     </div>
-
-//                     {/* Notes toggle */}
-//                     <div className="border border-[#EDE8DF] rounded-xl overflow-hidden">
-//                       <button type="button" onClick={() => setShowNotes(v => !v)}
-//                         className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED] transition-colors">
-//                         <span className="text-[13px] font-semibold text-[#6B6259]">📝 Internal Notes</span>
-//                         <span className="text-[11px] text-[#C8922A] font-bold">{showNotes ? "Remove" : "+ Add"}</span>
-//                       </button>
-//                       {showNotes && (
-//                         <div className="px-4 py-3 border-t border-[#EDE8DF]">
-//                           <textarea
-//                             rows={3}
-//                             placeholder="Internal notes (not visible to client)..."
-//                             value={formData.notes}
-//                             onChange={e => setFormData({ ...formData, notes: e.target.value })}
-//                             className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] text-[14px] resize-none"
-//                           />
-//                         </div>
-//                       )}
-//                     </div>
-//                   </div>
-//                 </div>
-
-//               </form>
-//             </div>
-
-//             {/* Modal Footer — Sticky */}
-//             <div className="p-6 border-t border-[#EDE8DF] flex gap-3 bg-white rounded-b-[32px] flex-shrink-0">
-//               <button type="button" onClick={closeModal} className="flex-1 py-3 border-2 border-[#EDE8DF] text-[#6B6259] font-bold rounded-2xl hover:bg-[#FAF8F5] transition-colors">
-//                 Cancel
-//               </button>
-//               <button
-//                 type="submit"
-//                 form="proposal-form"
-//                 disabled={saving}
-//                 className="flex-1 py-3 bg-[#C8922A] text-white font-black rounded-2xl shadow-lg shadow-[#C8922A]/20 hover:bg-[#B07A20] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-//               >
-//                 {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-//                 {editId ? "Update Proposal" : "Create Proposal"}
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
 
 "use client";
 
@@ -481,8 +36,20 @@ import {
   type ProposalTemplate,
 } from "@/services/proposalService";
 
-import { getAllClients, type Client } from "@/services/clientService";
-import { getProjectsByClient, type Project } from "@/services/projectService";
+import {
+  getAllClients,
+  createClient,
+  type Client,
+  type ClientFormData,
+} from "@/services/clientService";
+
+import {
+  getProjectsByClient,
+  createProject,
+  type Project,
+} from "@/services/projectService";
+
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: "Draft", color: "#6B6259", bg: "#F5F2ED" },
@@ -500,6 +67,335 @@ const blankForm: ProposalFormData = {
   notes: "",
   use_template: "",
 };
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Quick Add: Client Modal */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+function QuickAddClientModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (client: Client) => void;
+}) {
+  const [form, setForm] = useState<ClientFormData>({
+    full_name: "",
+    email: "",
+    phone: "",
+    billing_address: "",
+    site_address: "",
+    gstin: "",
+    state: "",
+    country: "India",
+    city: "", 
+    lead_source: "",
+    lead_source_other: "",
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const created = await createClient(form);
+      onCreated(created);
+    } catch (err: any) {
+      setError(err?.message || "Failed to create client");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div className="p-5 border-b border-[#EDE8DF] flex justify-between items-center bg-[#FCFBF9]">
+          <h3 className="text-[16px] font-bold">Add New Client</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-[#F5F2ED] rounded-full text-[#9A8F82]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSave} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+          {error && (
+            <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-lg">
+              {error}
+            </p>
+          )}
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Full Name *
+            </label>
+            <input
+              required
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Phone *
+            </label>
+            <input
+              required
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Email
+            </label>
+            <input
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Billing Address *
+            </label>
+            <textarea
+              required
+              rows={2}
+              value={form.billing_address}
+              onChange={(e) => setForm({ ...form, billing_address: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A] resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Site Address
+            </label>
+            <textarea
+              rows={2}
+              value={form.site_address}
+              onChange={(e) => setForm({ ...form, site_address: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A] resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              GSTIN
+            </label>
+            <input
+              value={form.gstin}
+              onChange={(e) => setForm({ ...form, gstin: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-[#C8922A] hover:bg-[#B07A20] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-[13px] disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            Save Client
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Quick Add: Project Modal */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+function QuickAddProjectModal({
+  clientId,
+  clientName,
+  onClose,
+  onCreated,
+}: {
+  clientId: string;
+  clientName: string;
+  onClose: () => void;
+  onCreated: (project: Project) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [form, setForm] = useState<Project>({
+    client: clientId,
+    name: "",
+    property_type: "apartment",
+    style_category: "modern",
+    area_sqft: "",
+    budget_range: "",
+    start_date: today,
+    expected_end_date: "",
+    status: "active",
+    notes: "",
+  });
+
+  useEffect(() => {
+    setForm((p) => ({ ...p, client: clientId }));
+  }, [clientId]);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const payload: Project = {
+        ...form,
+        client: clientId, // force
+        area_sqft: form.area_sqft === "" ? null : form.area_sqft,
+      };
+
+      const created = await createProject(clientId, payload);
+      onCreated(created);
+    } catch (err: any) {
+      setError(err?.message || "Failed to create project");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div className="p-5 border-b border-[#EDE8DF] flex justify-between items-center bg-[#FCFBF9]">
+          <div>
+            <h3 className="text-[16px] font-bold">Add New Project</h3>
+            <p className="text-[11px] text-[#9A8F82]">Client: {clientName}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-[#F5F2ED] rounded-full text-[#9A8F82]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSave} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+          {error && (
+            <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>
+          )}
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Client
+            </label>
+            <input
+              value={clientName}
+              disabled
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] bg-[#FAF8F5] opacity-80"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+              Project Name *
+            </label>
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+                Property Type *
+              </label>
+              <select
+                value={form.property_type}
+                onChange={(e) => setForm({ ...form, property_type: e.target.value })}
+                className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+              >
+                {["apartment", "villa", "office", "commercial"].map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+                Style
+              </label>
+              <select
+                value={form.style_category}
+                onChange={(e) => setForm({ ...form, style_category: e.target.value })}
+                className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+              >
+                {["modern", "traditional", "minimalist", "contemporary"].map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+                Area (sqft)
+              </label>
+              <input
+                type="number"
+                value={form.area_sqft ?? ""}
+                onChange={(e) => setForm({ ...form, area_sqft: e.target.value })}
+                className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-[#9A8F82] uppercase mb-1">
+                Budget Range
+              </label>
+              <input
+                value={form.budget_range}
+                onChange={(e) => setForm({ ...form, budget_range: e.target.value })}
+                className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-[#C8922A] hover:bg-[#B07A20] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-[13px] disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            Save Project
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* Main Page */
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 export default function ProposalsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -521,6 +417,9 @@ export default function ProposalsPage() {
   const [showTemplate, setShowTemplate] = useState(false);
   const [showValidUntil, setShowValidUntil] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [showAddProject, setShowAddProject] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -564,9 +463,11 @@ export default function ProposalsPage() {
     setFormData(blankForm);
     setSelectedClientId("");
     setProjects([]);
+
     setShowTemplate(false);
     setShowValidUntil(false);
     setShowNotes(false);
+
     setIsModalOpen(true);
   };
 
@@ -590,6 +491,7 @@ export default function ProposalsPage() {
     setShowTemplate(!!p.template);
     setShowValidUntil(!!p.valid_until);
     setShowNotes(!!p.notes);
+
     setIsModalOpen(true);
   };
 
@@ -606,6 +508,7 @@ export default function ProposalsPage() {
     setFormData((prev) => ({
       ...prev,
       use_template: templateId,
+      // frontend preview auto-fill (backend will also auto-generate on create)
       content: tpl?.content ?? prev.content,
     }));
   };
@@ -703,6 +606,7 @@ export default function ProposalsPage() {
       ["Notes", p.notes ?? ""],
       ["Content", p.content ?? ""],
     ];
+
     const csv = rows
       .map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -741,6 +645,22 @@ export default function ProposalsPage() {
       setActionId(null);
     }
   };
+
+  // Quick add callbacks
+  const handleClientCreated = async (client: Client) => {
+    setClients((prev) => [client, ...prev]);
+    setSelectedClientId(client.id);
+    setFormData((prev) => ({ ...prev, project: "" }));
+    setShowAddClient(false);
+    await loadProjectsForClient(client.id);
+  };
+
+  const handleProjectCreated = (project: Project) => {
+    setProjects((prev) => [project, ...prev]);
+    setFormData((prev) => ({ ...prev, project: project.id! }));
+    setShowAddProject(false);
+  };
+
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return proposals.filter((p) => {
@@ -752,8 +672,29 @@ export default function ProposalsPage() {
     });
   }, [proposals, searchQuery]);
 
+  const selectedClientName =
+    clients.find((c) => c.id === selectedClientId)?.full_name || "Selected Client";
+
   return (
     <div className="min-h-screen bg-[#FCFBF9] p-6 md:p-10 text-[#1C1C1C]">
+      {/* Nested quick add modals */}
+      {showAddClient && (
+        <QuickAddClientModal
+          onClose={() => setShowAddClient(false)}
+          onCreated={handleClientCreated}
+        />
+      )}
+
+      {showAddProject && selectedClientId && (
+        <QuickAddProjectModal
+          clientId={selectedClientId}
+          clientName={selectedClientName}
+          onClose={() => setShowAddProject(false)}
+          onCreated={handleProjectCreated}
+        />
+      )}
+
+      {/* Header */}
       <div className="flex justify-between items-end mb-10">
         <div>
           <h1 className="text-3xl font-black tracking-tighter">Proposals</h1>
@@ -767,6 +708,7 @@ export default function ProposalsPage() {
         </button>
       </div>
 
+      {/* Table */}
       <div className="bg-white border border-[#EDE8DF] rounded-[32px] overflow-hidden shadow-sm">
         <div className="p-6 border-b border-[#EDE8DF]">
           <div className="relative">
@@ -795,9 +737,17 @@ export default function ProposalsPage() {
 
             <tbody className="divide-y divide-[#F5F2ED]">
               {loading ? (
-                <tr><td colSpan={5} className="py-20 text-center"><Loader2 className="animate-spin mx-auto text-[#C8922A]" /></td></tr>
+                <tr>
+                  <td colSpan={5} className="py-20 text-center">
+                    <Loader2 className="animate-spin mx-auto text-[#C8922A]" />
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} className="py-20 text-center text-[#9A8F82]">No proposals found.</td></tr>
+                <tr>
+                  <td colSpan={5} className="py-20 text-center text-[#9A8F82]">
+                    No proposals found.
+                  </td>
+                </tr>
               ) : (
                 filtered.map((p) => (
                   <tr key={p.id} className="hover:bg-[#FCFBF9] transition-colors group">
@@ -821,7 +771,10 @@ export default function ProposalsPage() {
                     <td className="px-8 py-6">
                       <span
                         className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-                        style={{ backgroundColor: statusConfig[p.status]?.bg, color: statusConfig[p.status]?.color }}
+                        style={{
+                          backgroundColor: statusConfig[p.status]?.bg,
+                          color: statusConfig[p.status]?.color,
+                        }}
                       >
                         {statusConfig[p.status]?.label ?? p.status}
                       </span>
@@ -831,7 +784,11 @@ export default function ProposalsPage() {
 
                     <td className="px-8 py-6 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => openEdit(p)} className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#C8922A]" title="Edit">
+                        <button
+                          onClick={() => openEdit(p)}
+                          className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#C8922A]"
+                          title="Edit"
+                        >
                           <Edit3 size={14} />
                         </button>
 
@@ -842,7 +799,11 @@ export default function ProposalsPage() {
                             className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#3B82F6] disabled:opacity-50"
                             title="Mark Sent"
                           >
-                            {actionId === `sent_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                            {actionId === `sent_${p.id}` ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Send size={14} />
+                            )}
                           </button>
                         )}
 
@@ -854,7 +815,11 @@ export default function ProposalsPage() {
                               className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#10B981] disabled:opacity-50"
                               title="Accept"
                             >
-                              {actionId === `accepted_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                              {actionId === `accepted_${p.id}` ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <CheckCircle size={14} />
+                              )}
                             </button>
                             <button
                               onClick={() => markStatus(p.id, "rejected")}
@@ -862,7 +827,11 @@ export default function ProposalsPage() {
                               className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#EF4444] disabled:opacity-50"
                               title="Reject"
                             >
-                              {actionId === `rejected_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                              {actionId === `rejected_${p.id}` ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <XCircle size={14} />
+                              )}
                             </button>
                           </>
                         )}
@@ -873,10 +842,18 @@ export default function ProposalsPage() {
                           className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#1C1C1C] disabled:opacity-50"
                           title="PDF"
                         >
-                          {actionId === `pdf_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Printer size={14} />}
+                          {actionId === `pdf_${p.id}` ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Printer size={14} />
+                          )}
                         </button>
 
-                        <button onClick={() => handleDownloadCsv(p)} className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#10B981]" title="CSV">
+                        <button
+                          onClick={() => handleDownloadCsv(p)}
+                          className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#10B981]"
+                          title="CSV"
+                        >
                           <FileSpreadsheet size={14} />
                         </button>
 
@@ -886,7 +863,11 @@ export default function ProposalsPage() {
                           className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#3B82F6] disabled:opacity-50"
                           title="Send Email (Backend)"
                         >
-                          {actionId === `email_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                          {actionId === `email_${p.id}` ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Mail size={14} />
+                          )}
                         </button>
 
                         <button
@@ -895,10 +876,18 @@ export default function ProposalsPage() {
                           className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-[#25D366] disabled:opacity-50"
                           title="Send WhatsApp (Backend)"
                         >
-                          {actionId === `wa_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                          {actionId === `wa_${p.id}` ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <MessageCircle size={14} />
+                          )}
                         </button>
 
-                        <button onClick={() => handleDelete(p.id)} className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-red-500" title="Delete">
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="p-2 border border-[#EDE8DF] rounded-lg text-[#6B6259] hover:text-red-500"
+                          title="Delete"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -911,7 +900,7 @@ export default function ProposalsPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#1C1C1C]/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh]">
@@ -920,7 +909,9 @@ export default function ProposalsPage() {
                 <h2 className="font-black text-xl">{editId ? "Edit Proposal" : "New Proposal"}</h2>
                 <p className="text-[12px] text-[#9A8F82] mt-0.5">Client → Project select karo</p>
               </div>
-              <button onClick={closeModal} className="text-[#9A8F82] hover:text-black"><X size={24} /></button>
+              <button onClick={closeModal} className="text-[#9A8F82] hover:text-black">
+                <X size={24} />
+              </button>
             </div>
 
             <div className="p-8 overflow-y-auto flex-1">
@@ -930,24 +921,40 @@ export default function ProposalsPage() {
                   <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">
                     Client <span className="text-red-400">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      required
-                      value={selectedClientId}
-                      onChange={async (e) => {
-                        const cid = e.target.value;
-                        setSelectedClientId(cid);
-                        setFormData((prev) => ({ ...prev, project: "" }));
-                        await loadProjectsForClient(cid);
-                      }}
-                      className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none"
+
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <select
+                        required
+                        value={selectedClientId}
+                        onChange={async (e) => {
+                          const cid = e.target.value;
+                          setSelectedClientId(cid);
+                          setFormData((prev) => ({ ...prev, project: "" }));
+                          await loadProjectsForClient(cid);
+                        }}
+                        className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none"
+                      >
+                        <option value="">Select a client</option>
+                        {clients.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.full_name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none"
+                        size={16}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAddClient(true)}
+                      className="px-4 py-3 border border-dashed border-[#C8922A] text-[#C8922A] rounded-xl text-[12px] font-bold hover:bg-[#FDF3E3]"
                     >
-                      <option value="">Select a client</option>
-                      {clients.map((c) => (
-                        <option key={c.id} value={c.id}>{c.full_name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none" size={16} />
+                      + Client
+                    </button>
                   </div>
                 </div>
 
@@ -956,18 +963,39 @@ export default function ProposalsPage() {
                   <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">
                     Project <span className="text-red-400">*</span>
                   </label>
-                  <div className="relative">
-                    <select
-                      required
+
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <select
+                        required
+                        disabled={!selectedClientId}
+                        value={formData.project}
+                        onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                        className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none disabled:opacity-60"
+                      >
+                        <option value="">
+                          {selectedClientId ? "Select a project" : "Select client first"}
+                        </option>
+                        {projects.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none"
+                        size={16}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
                       disabled={!selectedClientId}
-                      value={formData.project}
-                      onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                      className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none disabled:opacity-60"
+                      onClick={() => setShowAddProject(true)}
+                      className="px-4 py-3 border border-dashed border-[#C8922A] text-[#C8922A] rounded-xl text-[12px] font-bold hover:bg-[#FDF3E3] disabled:opacity-60"
                     >
-                      <option value="">{selectedClientId ? "Select a project" : "Select client first"}</option>
-                      {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none" size={16} />
+                      + Project
+                    </button>
                   </div>
                 </div>
 
@@ -992,7 +1020,9 @@ export default function ProposalsPage() {
                     className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
                   >
                     <span className="text-[13px] font-semibold text-[#6B6259]">Template</span>
-                    <span className="text-[11px] text-[#C8922A] font-bold">{showTemplate ? "Remove" : "+ Add"}</span>
+                    <span className="text-[11px] text-[#C8922A] font-bold">
+                      {showTemplate ? "Remove" : "+ Add"}
+                    </span>
                   </button>
 
                   {showTemplate && (
@@ -1004,9 +1034,16 @@ export default function ProposalsPage() {
                           className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none"
                         >
                           <option value="">No template</option>
-                          {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                          {templates.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name}
+                            </option>
+                          ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none" size={16} />
+                        <ChevronDown
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9A8F82] pointer-events-none"
+                          size={16}
+                        />
                       </div>
                     </div>
                   )}
@@ -1025,11 +1062,63 @@ export default function ProposalsPage() {
                     className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] resize-none font-mono"
                   />
                 </div>
+
+                {/* Optional: Valid Until */}
+                <div className="border border-[#EDE8DF] rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowValidUntil((v) => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
+                  >
+                    <span className="text-[13px] font-semibold text-[#6B6259]">Valid Until</span>
+                    <span className="text-[11px] text-[#C8922A] font-bold">
+                      {showValidUntil ? "Remove" : "+ Add"}
+                    </span>
+                  </button>
+                  {showValidUntil && (
+                    <div className="px-4 py-3 border-t border-[#EDE8DF]">
+                      <input
+                        type="date"
+                        value={formData.valid_until ?? ""}
+                        onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                        className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A]"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional: Notes */}
+                <div className="border border-[#EDE8DF] rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowNotes((v) => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
+                  >
+                    <span className="text-[13px] font-semibold text-[#6B6259]">Internal Notes</span>
+                    <span className="text-[11px] text-[#C8922A] font-bold">
+                      {showNotes ? "Remove" : "+ Add"}
+                    </span>
+                  </button>
+                  {showNotes && (
+                    <div className="px-4 py-3 border-t border-[#EDE8DF]">
+                      <textarea
+                        rows={3}
+                        value={formData.notes ?? ""}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] resize-none"
+                      />
+                    </div>
+                  )}
+                </div>
               </form>
             </div>
 
             <div className="p-6 border-t border-[#EDE8DF] flex gap-3 bg-white rounded-b-[32px]">
-              <button type="button" onClick={closeModal} className="flex-1 py-3 border-2 border-[#EDE8DF] text-[#6B6259] font-bold rounded-2xl hover:bg-[#FAF8F5]">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="flex-1 py-3 border-2 border-[#EDE8DF] text-[#6B6259] font-bold rounded-2xl hover:bg-[#FAF8F5]"
+              >
                 Cancel
               </button>
               <button

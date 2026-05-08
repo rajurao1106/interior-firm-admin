@@ -179,6 +179,11 @@ export type Client = {
   site_address?: string;
   gstin?: string;
   project_count?: number;
+  state?: string;
+  city?: string;
+  country?: string;
+  lead_source?: string;
+  lead_source_other?: string;
 };
 
 export type ClientFormData = {
@@ -188,6 +193,11 @@ export type ClientFormData = {
   billing_address: string;
   site_address: string;
   gstin: string;
+  state: string;
+  city: string;
+  country: string;
+  lead_source: string;
+  lead_source_other: string;
 };
 
 // ─── Helper: Auth headers ─────────────────────────────────────────────────────

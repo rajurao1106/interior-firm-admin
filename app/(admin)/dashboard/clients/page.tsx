@@ -21,14 +21,37 @@ type ClientUI = Client & {
   name: string;
   projects: number;
   initial: string;
+  state: string;
+  city: string;
+  address: string;
+  gstin: string;
+  lead_source: string;
+  lead_source_other: string;
+  country: string;
 };
-
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal",
+  // UTs
+  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+];
 function toClientUI(client: Client): ClientUI {
   return {
     ...client,
     name: client.full_name,
     projects: client.project_count ?? 0,
     initial: client.full_name.charAt(0).toUpperCase(),
+    state: client.state || "",
+    city: client.city || "",
+    address: client.billing_address || "",
+    gstin: client.gstin || "",
+    lead_source: client.lead_source || "",
+    lead_source_other: client.lead_source_other || "",
+    country: client.country || "India",
   };
 }
 
@@ -37,17 +60,22 @@ export default function ClientsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeMenu, setActiveMenu] = useState<string  | null>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const [clients, setClients] = useState<ClientUI[]>([]);
-  const [editingId, setEditingId] = useState<string  | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
     billing_address: "",
     site_address: "",
-    gstin: ""
+    gstin: "",
+    lead_source: "",
+    lead_source_other: "",
+    city: "",
+    state: "",
+    country: "India",
   });
 
   const fetchClients = useCallback(async () => {
@@ -69,7 +97,7 @@ export default function ClientsPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ full_name: "", email: "", phone: "", billing_address: "", site_address: "", gstin: "" });
+    setFormData({ full_name: "", email: "", phone: "", billing_address: "", site_address: "", gstin: "", lead_source: "", lead_source_other: "", city: "", state: "", country: "India" });
   };
 
   const handleEditClick = (client: ClientUI) => {
@@ -80,7 +108,12 @@ export default function ClientsPage() {
       phone: client.phone || "",
       billing_address: client.billing_address || "",
       site_address: client.site_address || "",
-      gstin: client.gstin || ""
+      gstin: client.gstin || "",
+      lead_source: client.lead_source || "",
+      lead_source_other: client.lead_source_other || "",
+      city: client.city || "",
+      state: client.state || "",
+      country: client.country || "India",
     });
     setIsModalOpen(true);
     setActiveMenu(null);
@@ -350,7 +383,94 @@ export default function ClientsPage() {
                   />
                 </div>
               </div>
+              {/* Lead Source */}
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">
+                    Lead Source
+                  </label>
+                  <select
+                    value={formData.lead_source}
+                    onChange={(e) =>
+                      setFormData((p) => ({
+                        ...p,
+                        lead_source: e.target.value,
+                        // source change karte hi other empty
+                        lead_source_other: e.target.value === "other" ? p.lead_source_other : "",
+                      }))
+                    }
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all"
+                  >
+                    <option value="">— Select —</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="google">Google Search / Ads</option>
+                    <option value="website">Website</option>
+                    <option value="walkin">Walk-in</option>
+                    <option value="referral">Reference / Referral</option>
+                    <option value="architect">Architect / Designer</option>
+                    <option value="builder">Builder</option>
+                    <option value="broker">Broker</option>
+                    <option value="portal">99acres / MagicBricks / etc</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
 
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">
+                    Lead Source (If Other)
+                  </label>
+                  <input
+                    disabled={formData.lead_source !== "other"}
+                    value={formData.lead_source_other}
+                    onChange={(e) => setFormData((p) => ({ ...p, lead_source_other: e.target.value }))}
+                    placeholder="e.g. Partner, Event, Newspaper..."
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="grid grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">
+                    City
+                  </label>
+                  <input
+                    value={formData.city}
+                    onChange={(e) => setFormData((p) => ({ ...p, city: e.target.value }))}
+                    placeholder="e.g. Raipur"
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">
+                    State
+                  </label>
+                  <select
+                    value={formData.state}
+                    onChange={(e) => setFormData((p) => ({ ...p, state: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none focus:border-[#C8922A] transition-all"
+                  >
+                    <option value="">— Select —</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">
+                    Country
+                  </label>
+                  <input
+                    value={formData.country}
+                    readOnly
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] font-medium outline-none opacity-80"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#6B6259] uppercase tracking-[0.1em]">Billing Address</label>
