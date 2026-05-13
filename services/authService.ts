@@ -52,12 +52,12 @@ export async function registerUser(payload: RegisterPayload): Promise<void> {
   });
 
   const data = await response.json();
+  console.log("Register response:", response.status, data); // 👈 add this
 
   if (!response.ok) {
-    throw new Error(data.message || data.detail || "Registration failed");
+    throw new Error(data.message || data.detail || JSON.stringify(data) || "Registration failed");
   }
 }
-
 // ─── Logout: Token clear karo ────────────────────────────────────────────────
 
 export function logoutUser(): void {
