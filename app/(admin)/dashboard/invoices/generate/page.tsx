@@ -31,7 +31,7 @@
 //   const handleGenerate = async () => {
 //     setLoading(true);
 //     try {
-//       const response = await fetch("http://127.0.0.1:8000/api/v1/invoices/", {
+//       const response = await fetch("https://interior-firm-crm-be.onrender.com/api/v1//invoices/", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify({
@@ -169,7 +169,7 @@ function getAuthHeaders(): HeadersInit {
   return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://interior-firm-crm-be.onrender.com/api/v1";
 
 // ─── Fmt ──────────────────────────────────────────────────────────────────────
 const fmt = (n: any) =>
@@ -297,7 +297,7 @@ export default function GenerateInvoicePage() {
         milestone_label: form.invoice_type !== "full" ? form.milestone_label : undefined,
         milestone_percentage: form.milestone_percentage,
         invoice_date: form.invoice_date,
-        due_days: form.due_days,
+        due_days: form.due_days,  
         notes: form.notes || undefined,
       };
       await generateInvoice(payload);

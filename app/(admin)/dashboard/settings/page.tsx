@@ -458,6 +458,7 @@ import {
 } from "@/services/settingsService";
 import { setGstEnabledLocal } from "@/lib/gstToggle";
 
+
 type BankData = Record<string, any>;
 type BrandData = Record<string, any>;
 type NumberingData = Record<string, any>;
@@ -473,7 +474,7 @@ interface LineItem {
   is_active: boolean;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://interior-firm-crm-be.onrender.com/api/v1";
 
 function getAuthHeaders(): HeadersInit {
   if (typeof window === "undefined") return { "Content-Type": "application/json" };

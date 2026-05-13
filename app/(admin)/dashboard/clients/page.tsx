@@ -17,6 +17,7 @@ import {
   type ClientFormData,
 } from "@/services/clientService";
 
+
 type ClientUI = Client & {
   name: string;
   projects: number;

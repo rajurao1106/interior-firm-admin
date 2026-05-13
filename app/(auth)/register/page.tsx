@@ -16,7 +16,7 @@ export default function RegisterPage() {
     full_name: "",
     email: "",
     password: "",
-    role: "admin",
+    role: "designer",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,9 +112,9 @@ export default function RegisterPage() {
                   onChange={e => setFormData({ ...formData, role: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl text-[14px] outline-none focus:border-[#C8922A] appearance-none"
                 >
-                  <option value="admin">Admin</option>
-                  <option value="staff">Staff</option>
-                  <option value="viewer">Viewer</option>
+                  <option value="manager">Manager</option>
+                  <option value="accountant">Accountant</option>
+                  <option value="designer">Designer</option>
                 </select>
               </div>
             </div>
