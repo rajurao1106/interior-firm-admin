@@ -145,97 +145,25 @@ export async function loginUser(
 // REGISTER
 // ─────────────────────────────────────────────
 
-// export async function registerUser(
-//   payload: RegisterPayload
-// ): Promise<void> {
-
-//   const response = await fetch(
-//     `${API_BASE_URL}/auth/register/`,
-//     {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(payload),
-//     }
-//   );
-
-//   const data = await response.json();
-
-//   if (!response.ok) {
-
-//     console.log(data);
-
-//     throw new Error(
-//       data.email?.[0] ||
-//       data.password?.[0] ||
-//       data.role?.[0] ||
-//       data.detail ||
-//       "Registration failed"
-//     );
-//   }
-// }
 export async function registerUser(
   payload: RegisterPayload
 ): Promise<void> {
-
-  const response = await fetch(
-    `${API_BASE_URL}/auth/register/`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  // SAFE RESPONSE PARSE
-  const text = await response.text();
-
-  let data: any = {};
-
-  try {
-    data = JSON.parse(text);
-  } catch {
-    console.error("NON-JSON RESPONSE:", text);
-    throw new Error(
-      "Server error. Check Render logs."
-    );
-  }
-
-  if (!response.ok) {
-
-    console.log(data);
-
-    throw new Error(
-      data.email?.[0] ||
-      data.password?.[0] ||
-      data.role?.[0] ||
-      data.detail ||
-      "Registration failed"
-    );
-  }
-}
-// ─────────────────────────────────────────────
-// AUTH FETCH
-// ─────────────────────────────────────────────
-
-export async function authFetch(
-  url: string,
-  options: RequestInit = {}
-) {
-
-  const token = localStorage.getItem("access");
-
-  return fetch(url, {
-    ...options,
+  const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
     },
+    body: JSON.stringify(payload),
   });
+
+  const data = await response.json();
+  console.log("Register response:", response.status, data);
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || data.detail || JSON.stringify(data) || "Registration failed"
+    );
+  }
 }
 
 // ─────────────────────────────────────────────

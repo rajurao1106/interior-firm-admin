@@ -1579,7 +1579,13 @@
 
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -1627,7 +1633,7 @@ import {
   reviseQuotation,
   sendQuotation, // marks sent
   deleteQuotation as deleteQuotationFromClientService,
-} from "@/services/clientService";
+} from "@/backup/services/clientService";
 
 import {
   // quotations
@@ -1636,8 +1642,7 @@ import {
   updateQuotation,
   downloadQuotationPdf,
   sendQuotationEmail,
-  
-} from "@/services/quotationService";
+} from "@/backup/services/quotationService";
 
 import {
   // proposals
@@ -1651,7 +1656,7 @@ import {
   sendProposalEmail,
   sendProposalWhatsApp,
   type Proposal,
-} from "@/services/proposalService";
+} from "@/backup/services/proposalService";
 
 import {
   // invoices
@@ -1666,7 +1671,7 @@ import {
   sendInvoiceEmail,
   sendInvoiceWhatsApp,
   type Invoice,
-} from "@/services/invoiceService";
+} from "@/backup/services/invoiceService";
 
 import API_BASE_URL from "@/lib/config";
 
@@ -1677,55 +1682,55 @@ const inputCls =
 
 const projectBadge = (s: string) =>
   (
-    {
+    ({
       completed: "bg-green-100 text-green-700",
       active: "bg-blue-100 text-blue-700",
       on_hold: "bg-amber-100 text-amber-700",
-    } as Record<string, string>
+    }) as Record<string, string>
   )[s] || "bg-gray-100 text-gray-700";
 
 const proposalBadge = (s: string) =>
   (
-    {
+    ({
       draft: "bg-gray-100 text-gray-600",
       sent: "bg-blue-100 text-blue-700",
       accepted: "bg-green-100 text-green-700",
       rejected: "bg-red-100 text-red-600",
-    } as Record<string, string>
+    }) as Record<string, string>
   )[s] || "bg-gray-100 text-gray-700";
 
 const quoteBadge = (s: string) =>
   (
-    {
+    ({
       draft: "bg-gray-100 text-gray-600",
       sent: "bg-blue-100 text-blue-700",
       approved: "bg-green-100 text-green-700",
       rejected: "bg-red-100 text-red-600",
       revised: "bg-purple-100 text-purple-700",
       superseded: "bg-gray-200 text-gray-600",
-    } as Record<string, string>
+    }) as Record<string, string>
   )[s] || "bg-gray-100 text-gray-700";
 
 const invoiceBadge = (s: string) =>
   (
-    {
+    ({
       draft: "bg-gray-100 text-gray-600",
       issued: "bg-blue-100 text-blue-700",
       paid: "bg-green-100 text-green-700",
       partial: "bg-amber-100 text-amber-700",
       overdue: "bg-red-100 text-red-600",
       cancelled: "bg-gray-200 text-gray-500",
-    } as Record<string, string>
+    }) as Record<string, string>
   )[s] || "bg-gray-100 text-gray-700";
 
 const invoiceTypeBadge = (t: string) =>
   (
-    {
+    ({
       full: "bg-indigo-100 text-indigo-700",
       advance: "bg-cyan-100 text-cyan-700",
       milestone: "bg-purple-100 text-purple-700",
       final: "bg-teal-100 text-teal-700",
-    } as Record<string, string>
+    }) as Record<string, string>
   )[t] || "bg-gray-100 text-gray-700";
 
 const fmt = (n: any) =>
@@ -1784,21 +1789,30 @@ function downloadQuotationCSV(q: any) {
       it.unit,
       it.rate,
       (
-        (parseFloat(it.quantity || "0") || 0) * (parseFloat(it.rate || "0") || 0)
+        (parseFloat(it.quantity || "0") || 0) *
+        (parseFloat(it.rate || "0") || 0)
       ).toFixed(2),
     ]),
     [""],
     ["Subtotal", "", "", "", "", "", q.subtotal],
     ["Discount", "", "", "", "", "", q.discount_amount],
     ["Taxable Amount", "", "", "", "", "", q.taxable_amount],
-    ...(parseFloat(q.cgst_amount || "0") > 0 ? [["CGST", "", "", "", "", "", q.cgst_amount]] : []),
-    ...(parseFloat(q.sgst_amount || "0") > 0 ? [["SGST", "", "", "", "", "", q.sgst_amount]] : []),
-    ...(parseFloat(q.igst_amount || "0") > 0 ? [["IGST", "", "", "", "", "", q.igst_amount]] : []),
+    ...(parseFloat(q.cgst_amount || "0") > 0
+      ? [["CGST", "", "", "", "", "", q.cgst_amount]]
+      : []),
+    ...(parseFloat(q.sgst_amount || "0") > 0
+      ? [["SGST", "", "", "", "", "", q.sgst_amount]]
+      : []),
+    ...(parseFloat(q.igst_amount || "0") > 0
+      ? [["IGST", "", "", "", "", "", q.igst_amount]]
+      : []),
     ["Grand Total", "", "", "", "", "", q.grand_total],
   ];
 
   const csv = rows
-    .map((r) => r.map((c: any) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
+    .map((r) =>
+      r.map((c: any) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","),
+    )
     .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1822,11 +1836,16 @@ function downloadProposalCSV(p: any) {
   ];
 
   const csv = rows
-    .map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
+    .map((r) =>
+      r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","),
+    )
     .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  saveBlob(blob, `${(p.prop_number || p.id || "proposal").replace(/[^\w.-]+/g, "_")}.csv`);
+  saveBlob(
+    blob,
+    `${(p.prop_number || p.id || "proposal").replace(/[^\w.-]+/g, "_")}.csv`,
+  );
 }
 
 /* ───────────────────────────────────────────────────────────────────────────── */
@@ -1838,7 +1857,9 @@ export default function ClientDetails() {
 
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"projects" | "proposals" | "quotations" | "invoices">("projects");
+  const [activeTab, setActiveTab] = useState<
+    "projects" | "proposals" | "quotations" | "invoices"
+  >("projects");
 
   // scroll refs (detail panels)
   const proposalPanelRef = useRef<HTMLDivElement | null>(null);
@@ -1870,15 +1891,23 @@ export default function ClientDetails() {
   const [proposalsLoading, setProposalsLoading] = useState(false);
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [templateForm, setTemplateForm] = useState({ name: "", description: "", content: "" });
+  const [templateForm, setTemplateForm] = useState({
+    name: "",
+    description: "",
+    content: "",
+  });
   const [templateSubmitting, setTemplateSubmitting] = useState(false);
   const [templateError, setTemplateError] = useState<any>(null);
 
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
-  const [proposalMode, setProposalMode] = useState<"template" | "manual">("template");
+  const [proposalMode, setProposalMode] = useState<"template" | "manual">(
+    "template",
+  );
   const [proposalSubmitting, setProposalSubmitting] = useState(false);
   const [proposalError, setProposalError] = useState<any>(null);
-  const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
+  const [editingProposalId, setEditingProposalId] = useState<string | null>(
+    null,
+  );
 
   const [proposalForm, setProposalForm] = useState({
     project: "",
@@ -1891,7 +1920,9 @@ export default function ClientDetails() {
 
   const [viewingProposal, setViewingProposal] = useState<Proposal | null>(null);
   const [proposalDetailLoading, setProposalDetailLoading] = useState(false);
-  const [proposalActionKey, setProposalActionKey] = useState<string | null>(null);
+  const [proposalActionKey, setProposalActionKey] = useState<string | null>(
+    null,
+  );
 
   // ── Quotations ─────────────────────────────────────────────────────────────
   const [quotations, setQuotations] = useState<any[]>([]);
@@ -2082,24 +2113,41 @@ export default function ClientDetails() {
       fetchInvoices();
       fetchQuotations();
     }
-  }, [activeTab, client, fetchProjects, fetchProposals, fetchTemplates, fetchQuotations, fetchInvoices]);
+  }, [
+    activeTab,
+    client,
+    fetchProjects,
+    fetchProposals,
+    fetchTemplates,
+    fetchQuotations,
+    fetchInvoices,
+  ]);
 
   // auto-scroll detail panels
   useEffect(() => {
     if (viewingQuote && !quoteDetailLoading) {
-      quotePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      quotePanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [viewingQuote, quoteDetailLoading]);
 
   useEffect(() => {
     if (viewingInvoice && !invoiceDetailLoading) {
-      invoicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      invoicePanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [viewingInvoice, invoiceDetailLoading]);
 
   useEffect(() => {
     if (viewingProposal && !proposalDetailLoading) {
-      proposalPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      proposalPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }, [viewingProposal, proposalDetailLoading]);
 
@@ -2148,7 +2196,9 @@ export default function ClientDetails() {
     const payload = {
       ...projectForm,
       client: clientId,
-      area_sqft: projectForm.area_sqft ? parseFloat(projectForm.area_sqft) : null,
+      area_sqft: projectForm.area_sqft
+        ? parseFloat(projectForm.area_sqft)
+        : null,
     };
 
     try {
@@ -2287,7 +2337,10 @@ export default function ClientDetails() {
     }
   };
 
-  const handleProposalStatus = async (pid: string, st: "sent" | "accepted" | "rejected") => {
+  const handleProposalStatus = async (
+    pid: string,
+    st: "sent" | "accepted" | "rejected",
+  ) => {
     setProposalActionKey(`${st}_${pid}`);
     try {
       await updateProposalStatus(pid, st);
@@ -2348,7 +2401,7 @@ export default function ClientDetails() {
         unit: it.unit || "sqft",
         rate: String(it.rate),
         sort_order: it.sort_order || 1,
-      }))
+      })),
     );
 
     setQuoteError(null);
@@ -2360,10 +2413,14 @@ export default function ClientDetails() {
     setQuoteError(null);
   };
 
-  const addItem = () => setQuoteItems((p) => [...p, { ...EMPTY_ITEM(), sort_order: p.length + 1 }]);
-  const removeItem = (key: any) => setQuoteItems((p) => p.filter((i) => i._key !== key));
+  const addItem = () =>
+    setQuoteItems((p) => [...p, { ...EMPTY_ITEM(), sort_order: p.length + 1 }]);
+  const removeItem = (key: any) =>
+    setQuoteItems((p) => p.filter((i) => i._key !== key));
   const updateItem = (key: any, field: string, val: any) =>
-    setQuoteItems((p) => p.map((i) => (i._key === key ? { ...i, [field]: val } : i)));
+    setQuoteItems((p) =>
+      p.map((i) => (i._key === key ? { ...i, [field]: val } : i)),
+    );
 
   const moveItem = (key: any, dir: number) => {
     setQuoteItems((p) => {
@@ -2379,10 +2436,11 @@ export default function ClientDetails() {
   const totals = useMemo(() => {
     const subtotal = quoteItems.reduce(
       (s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.rate) || 0),
-      0
+      0,
     );
     const dv = parseFloat(quoteForm.discount_value) || 0;
-    const discAmt = quoteForm.discount_type === "percentage" ? (subtotal * dv) / 100 : dv;
+    const discAmt =
+      quoteForm.discount_type === "percentage" ? (subtotal * dv) / 100 : dv;
     const taxable = Math.max(0, subtotal - discAmt);
     let cgst = 0,
       sgst = 0,
@@ -2395,7 +2453,15 @@ export default function ClientDetails() {
       igst = (taxable * (parseFloat(quoteForm.igst_rate) || 0)) / 100;
     }
 
-    return { subtotal, discAmt, taxable, cgst, sgst, igst, total: taxable + cgst + sgst + igst };
+    return {
+      subtotal,
+      discAmt,
+      taxable,
+      cgst,
+      sgst,
+      igst,
+      total: taxable + cgst + sgst + igst,
+    };
   }, [quoteItems, quoteForm, taxMode]);
 
   const handleQuoteSubmit = async (e: any) => {
@@ -2497,10 +2563,13 @@ export default function ClientDetails() {
     setQuoteActionKey(`email_${qid}`);
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/notifications/email/quotation/${qid}/send/`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/notifications/email/quotation/${qid}/send/`,
+        {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
       if (!res.ok) throw new Error("Email failed");
       alert("✅ Quotation emailed!");
     } catch (e: any) {
@@ -2514,10 +2583,13 @@ export default function ClientDetails() {
     setQuoteActionKey(`wa_${qid}`);
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE_URL}/notifications/whatsapp/quotation/${qid}/send/`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/notifications/whatsapp/quotation/${qid}/send/`,
+        {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
       if (!res.ok) throw new Error("WhatsApp failed");
       alert("✅ Quotation WhatsApp sent!");
     } catch (e: any) {
@@ -2554,11 +2626,27 @@ export default function ClientDetails() {
   const handleInvoiceTypeChange = (type: string) => {
     const defaults: Record<string, any> = {
       full: { milestone_label: "", milestone_percentage: 100, due_days: 15 },
-      advance: { milestone_label: "Advance on Booking", milestone_percentage: 10, due_days: 7 },
-      milestone: { milestone_label: "", milestone_percentage: 20, due_days: 15 },
-      final: { milestone_label: "Final Handover", milestone_percentage: 20, due_days: 7 },
+      advance: {
+        milestone_label: "Advance on Booking",
+        milestone_percentage: 10,
+        due_days: 7,
+      },
+      milestone: {
+        milestone_label: "",
+        milestone_percentage: 20,
+        due_days: 15,
+      },
+      final: {
+        milestone_label: "Final Handover",
+        milestone_percentage: 20,
+        due_days: 7,
+      },
     };
-    setInvoiceForm((p: any) => ({ ...p, invoice_type: type, ...defaults[type] }));
+    setInvoiceForm((p: any) => ({
+      ...p,
+      invoice_type: type,
+      ...defaults[type],
+    }));
   };
 
   const handleInvoiceSubmit = async (e: any) => {
@@ -2668,11 +2756,20 @@ export default function ClientDetails() {
   const invoiceStats = useMemo(() => {
     return {
       total: invoices.length,
-      totalValue: invoices.reduce((s: number, i: any) => s + parseFloat(i.grand_total || 0), 0),
-      paid: invoices.filter((i: any) => i.status === "paid").reduce((s: number, i: any) => s + parseFloat(i.grand_total || 0), 0),
+      totalValue: invoices.reduce(
+        (s: number, i: any) => s + parseFloat(i.grand_total || 0),
+        0,
+      ),
+      paid: invoices
+        .filter((i: any) => i.status === "paid")
+        .reduce((s: number, i: any) => s + parseFloat(i.grand_total || 0), 0),
       pending: invoices
         .filter((i: any) => ["draft", "issued", "partial"].includes(i.status))
-        .reduce((s: number, i: any) => s + parseFloat(i.balance_due || i.grand_total || 0), 0),
+        .reduce(
+          (s: number, i: any) =>
+            s + parseFloat(i.balance_due || i.grand_total || 0),
+          0,
+        ),
     };
   }, [invoices]);
 
@@ -2696,7 +2793,10 @@ export default function ClientDetails() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-[#9A8F82] hover:text-[#1C1C1C] transition-colors group"
         >
-          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft
+            size={18}
+            className="group-hover:-translate-x-1 transition-transform"
+          />
           <span className="text-sm font-medium">Back to Clients</span>
         </button>
       </div>
@@ -2709,7 +2809,9 @@ export default function ClientDetails() {
               <div className="w-20 h-20 rounded-full bg-[#FDF3E3] text-[#C8922A] text-3xl font-bold flex items-center justify-center border-2 border-[#F5E6CC] mb-4 shadow-sm">
                 {client?.full_name?.charAt(0)?.toUpperCase() || "?"}
               </div>
-              <h1 className="text-xl font-bold text-[#1C1C1C]">{client.full_name}</h1>
+              <h1 className="text-xl font-bold text-[#1C1C1C]">
+                {client.full_name}
+              </h1>
               <span className="text-[11px] font-bold px-2 py-0.5 mt-2 rounded-full uppercase bg-green-50 text-green-600 border border-green-100">
                 Active Client
               </span>
@@ -2717,27 +2819,60 @@ export default function ClientDetails() {
 
             <div className="pt-6 space-y-5">
               {[
-                { icon: <Mail size={16} />, label: "Email Address", value: client.email || "N/A" },
-                { icon: <Phone size={16} />, label: "Phone Number", value: client.phone || "N/A" },
-                { icon: <CreditCard size={16} />, label: "GST Number", value: client.gstin || "N/A", upper: true },
-                { icon: <MapPin size={16} />, label: "Billing Address", value: client.billing_address || "N/A" },
-                { icon: <Home size={16} />, label: "Site Address", value: client.site_address || "N/A" },
+                {
+                  icon: <Mail size={16} />,
+                  label: "Email Address",
+                  value: client.email || "N/A",
+                },
+                {
+                  icon: <Phone size={16} />,
+                  label: "Phone Number",
+                  value: client.phone || "N/A",
+                },
+                {
+                  icon: <CreditCard size={16} />,
+                  label: "GST Number",
+                  value: client.gstin || "N/A",
+                  upper: true,
+                },
+                {
+                  icon: <MapPin size={16} />,
+                  label: "Billing Address",
+                  value: client.billing_address || "N/A",
+                },
+                {
+                  icon: <Home size={16} />,
+                  label: "Site Address",
+                  value: client.site_address || "N/A",
+                },
                 {
                   icon: <BadgeCheck size={16} />,
                   label: "Lead Source",
-                  value: client.lead_source === "other" ? client.lead_source_other || "Other" : client.lead_source || "N/A",
+                  value:
+                    client.lead_source === "other"
+                      ? client.lead_source_other || "Other"
+                      : client.lead_source || "N/A",
                 },
                 {
                   icon: <MapPin size={16} />,
                   label: "Location",
-                  value: [client.city, client.state, client.country].filter(Boolean).join(", ") || "N/A",
+                  value:
+                    [client.city, client.state, client.country]
+                      .filter(Boolean)
+                      .join(", ") || "N/A",
                 },
               ].map(({ icon, label, value, upper }: any) => (
                 <div key={label} className="flex items-start gap-3">
-                  <div className="p-2 bg-[#FAF8F5] rounded-lg text-[#9A8F82]">{icon}</div>
+                  <div className="p-2 bg-[#FAF8F5] rounded-lg text-[#9A8F82]">
+                    {icon}
+                  </div>
                   <div className="flex-1">
-                    <p className="text-[10px] uppercase font-bold text-[#9A8F82] tracking-wider">{label}</p>
-                    <p className={`text-[13px] font-medium text-[#1C1C1C] break-words leading-relaxed ${upper ? "uppercase" : ""}`}>
+                    <p className="text-[10px] uppercase font-bold text-[#9A8F82] tracking-wider">
+                      {label}
+                    </p>
+                    <p
+                      className={`text-[13px] font-medium text-[#1C1C1C] break-words leading-relaxed ${upper ? "uppercase" : ""}`}
+                    >
                       {value}
                     </p>
                   </div>
@@ -2765,16 +2900,34 @@ export default function ClientDetails() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-1 bg-white border border-[#EDE8DF] rounded-xl p-1 shadow-sm flex-wrap">
               {[
-                { key: "projects", icon: <Briefcase size={13} />, label: `Projects (${client.project_count ?? projects.length ?? 0})` },
-                { key: "proposals", icon: <ScrollText size={13} />, label: "Proposals" },
-                { key: "quotations", icon: <Receipt size={13} />, label: "Quotations" },
-                { key: "invoices", icon: <FileStack size={13} />, label: "Invoices" },
+                {
+                  key: "projects",
+                  icon: <Briefcase size={13} />,
+                  label: `Projects (${client.project_count ?? projects.length ?? 0})`,
+                },
+                {
+                  key: "proposals",
+                  icon: <ScrollText size={13} />,
+                  label: "Proposals",
+                },
+                {
+                  key: "quotations",
+                  icon: <Receipt size={13} />,
+                  label: "Quotations",
+                },
+                {
+                  key: "invoices",
+                  icon: <FileStack size={13} />,
+                  label: "Invoices",
+                },
               ].map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key as any)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all ${
-                    activeTab === t.key ? "bg-[#C8922A] text-white shadow-sm" : "text-[#6B6259] hover:text-[#1C1C1C]"
+                    activeTab === t.key
+                      ? "bg-[#C8922A] text-white shadow-sm"
+                      : "text-[#6B6259] hover:text-[#1C1C1C]"
                   }`}
                 >
                   {t.icon}
@@ -2833,7 +2986,10 @@ export default function ClientDetails() {
             <div className="bg-white rounded-2xl border border-[#EDE8DF] overflow-hidden shadow-sm">
               {projectsLoading ? (
                 <div className="py-14 text-center">
-                  <Loader2 className="inline animate-spin text-[#C8922A]" size={24} />
+                  <Loader2
+                    className="inline animate-spin text-[#C8922A]"
+                    size={24}
+                  />
                 </div>
               ) : projects.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -2853,15 +3009,25 @@ export default function ClientDetails() {
                     </thead>
                     <tbody className="divide-y divide-[#F5F2ED]">
                       {projects.map((p: any) => (
-                        <tr key={p.id} className="hover:bg-[#FAF8F5] transition-colors">
+                        <tr
+                          key={p.id}
+                          className="hover:bg-[#FAF8F5] transition-colors"
+                        >
                           <td className="px-4 sm:px-6 py-4">
-                            <p className="text-[13px] font-bold text-[#1C1C1C] capitalize">{p.name}</p>
+                            <p className="text-[13px] font-bold text-[#1C1C1C] capitalize">
+                              {p.name}
+                            </p>
                             <p className="text-[11px] text-[#9A8F82] mt-0.5">
-                              {p.property_type} • ₹{Number(p.budget_range || 0).toLocaleString("en-IN")}
+                              {p.property_type} • ₹
+                              {Number(p.budget_range || 0).toLocaleString(
+                                "en-IN",
+                              )}
                             </p>
                           </td>
                           <td className="px-4 sm:px-6 py-4">
-                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${projectBadge(p.status)}`}>
+                            <span
+                              className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${projectBadge(p.status)}`}
+                            >
                               {p.status}
                             </span>
                           </td>
@@ -2887,7 +3053,9 @@ export default function ClientDetails() {
                   </table>
                 </div>
               ) : (
-                <div className="p-16 text-center text-[#9A8F82] text-sm">No projects found.</div>
+                <div className="p-16 text-center text-[#9A8F82] text-sm">
+                  No projects found.
+                </div>
               )}
             </div>
           )}
@@ -2899,7 +3067,9 @@ export default function ClientDetails() {
               <div className="bg-white rounded-2xl border border-[#EDE8DF] overflow-hidden shadow-sm">
                 <div className="px-6 py-4 bg-[#FAF8F5] border-b border-[#EDE8DF] flex items-center gap-2">
                   <Layout size={14} className="text-[#C8922A]" />
-                  <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">Saved Templates</h3>
+                  <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">
+                    Saved Templates
+                  </h3>
                   <span className="ml-auto text-[11px] bg-[#FDF3E3] text-[#C8922A] font-bold px-2 py-0.5 rounded-full">
                     {templates.length}
                   </span>
@@ -2908,19 +3078,30 @@ export default function ClientDetails() {
                 {templates.length > 0 ? (
                   <div className="divide-y divide-[#F5F2ED]">
                     {templates.map((t: any) => (
-                      <div key={t.id} className="px-6 py-3 flex items-center gap-3 hover:bg-[#FAF8F5]">
+                      <div
+                        key={t.id}
+                        className="px-6 py-3 flex items-center gap-3 hover:bg-[#FAF8F5]"
+                      >
                         <div className="p-2 bg-[#FDF3E3] rounded-lg text-[#C8922A]">
                           <FileText size={13} />
                         </div>
                         <div>
-                          <p className="text-[13px] font-bold text-[#1C1C1C]">{t.name}</p>
-                          {t.description && <p className="text-[11px] text-[#9A8F82] truncate max-w-xs">{t.description}</p>}
+                          <p className="text-[13px] font-bold text-[#1C1C1C]">
+                            {t.name}
+                          </p>
+                          {t.description && (
+                            <p className="text-[11px] text-[#9A8F82] truncate max-w-xs">
+                              {t.description}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="px-6 py-8 text-center text-[#9A8F82] text-[13px]">No templates yet.</div>
+                  <div className="px-6 py-8 text-center text-[#9A8F82] text-[13px]">
+                    No templates yet.
+                  </div>
                 )}
               </div>
 
@@ -2928,7 +3109,9 @@ export default function ClientDetails() {
               <div className="bg-white rounded-2xl border border-[#EDE8DF] overflow-hidden shadow-sm">
                 <div className="px-6 py-4 bg-[#FAF8F5] border-b border-[#EDE8DF] flex items-center gap-2">
                   <ScrollText size={14} className="text-[#C8922A]" />
-                  <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">Proposals</h3>
+                  <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">
+                    Proposals
+                  </h3>
                   <span className="ml-auto text-[11px] bg-[#FDF3E3] text-[#C8922A] font-bold px-2 py-0.5 rounded-full">
                     {proposals.length}
                   </span>
@@ -2936,14 +3119,23 @@ export default function ClientDetails() {
 
                 {proposalsLoading ? (
                   <div className="flex justify-center py-10">
-                    <Loader2 className="animate-spin text-[#C8922A]" size={22} />
+                    <Loader2
+                      className="animate-spin text-[#C8922A]"
+                      size={22}
+                    />
                   </div>
                 ) : proposals.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[860px] text-left">
                       <thead className="border-b border-[#EDE8DF]">
                         <tr>
-                          {["Proposal", "Project", "Valid Until", "Status", "Actions"].map((h, i) => (
+                          {[
+                            "Proposal",
+                            "Project",
+                            "Valid Until",
+                            "Status",
+                            "Actions",
+                          ].map((h, i) => (
                             <th
                               key={h}
                               className={`px-4 sm:px-6 py-3 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider ${
@@ -2966,22 +3158,39 @@ export default function ClientDetails() {
                               >
                                 #{p.prop_number || "—"}
                               </button>
-                              <p className="text-[12px] text-[#6B6259]">{p.title}</p>
+                              <p className="text-[12px] text-[#6B6259]">
+                                {p.title}
+                              </p>
                             </td>
 
                             <td className="px-4 sm:px-6 py-4">
-                              <p className="text-[13px] text-[#1C1C1C] capitalize">{p.project_name}</p>
-                              {p.template_name && <p className="text-[11px] text-[#9A8F82]">via {p.template_name}</p>}
+                              <p className="text-[13px] text-[#1C1C1C] capitalize">
+                                {p.project_name}
+                              </p>
+                              {p.template_name && (
+                                <p className="text-[11px] text-[#9A8F82]">
+                                  via {p.template_name}
+                                </p>
+                              )}
                             </td>
 
                             <td className="px-4 sm:px-6 py-4 text-[13px] text-[#6B6259]">
                               {p.valid_until
-                                ? new Date(p.valid_until).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                                ? new Date(p.valid_until).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    },
+                                  )
                                 : "—"}
                             </td>
 
                             <td className="px-4 sm:px-6 py-4">
-                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${proposalBadge(p.status)}`}>
+                              <span
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${proposalBadge(p.status)}`}
+                              >
                                 {p.status}
                               </span>
                             </td>
@@ -2998,36 +3207,67 @@ export default function ClientDetails() {
 
                                 {p.status === "draft" && (
                                   <button
-                                    onClick={() => handleProposalStatus(p.id, "sent")}
-                                    disabled={proposalActionKey === `sent_${p.id}`}
+                                    onClick={() =>
+                                      handleProposalStatus(p.id, "sent")
+                                    }
+                                    disabled={
+                                      proposalActionKey === `sent_${p.id}`
+                                    }
                                     className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                     title="Mark Sent"
                                   >
-                                    {proposalActionKey === `sent_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                    {proposalActionKey === `sent_${p.id}` ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <Send size={14} />
+                                    )}
                                   </button>
                                 )}
 
                                 {p.status === "sent" && (
                                   <>
                                     <button
-                                      onClick={() => handleProposalStatus(p.id, "accepted")}
-                                      disabled={proposalActionKey === `accepted_${p.id}`}
+                                      onClick={() =>
+                                        handleProposalStatus(p.id, "accepted")
+                                      }
+                                      disabled={
+                                        proposalActionKey === `accepted_${p.id}`
+                                      }
                                       className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
                                       title="Accept"
                                     >
-                                      {proposalActionKey === `accepted_${p.id}` ? (
-                                        <Loader2 size={14} className="animate-spin" />
+                                      {proposalActionKey ===
+                                      `accepted_${p.id}` ? (
+                                        <Loader2
+                                          size={14}
+                                          className="animate-spin"
+                                        />
                                       ) : (
                                         <CheckCircle size={14} />
                                       )}
                                     </button>
                                     <button
-                                      onClick={() => handleProposalStatus(p.id, "rejected")}
-                                      disabled={proposalActionKey === `rejected_${p.id}`}
+                                      onClick={() =>
+                                        handleProposalStatus(p.id, "rejected")
+                                      }
+                                      disabled={
+                                        proposalActionKey === `rejected_${p.id}`
+                                      }
                                       className="p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 disabled:opacity-50"
                                       title="Reject"
                                     >
-                                      {proposalActionKey === `rejected_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                                      {proposalActionKey ===
+                                      `rejected_${p.id}` ? (
+                                        <Loader2
+                                          size={14}
+                                          className="animate-spin"
+                                        />
+                                      ) : (
+                                        <X size={14} />
+                                      )}
                                     </button>
                                   </>
                                 )}
@@ -3036,8 +3276,13 @@ export default function ClientDetails() {
                                   onClick={async () => {
                                     setProposalActionKey(`pdf_${p.id}`);
                                     try {
-                                      const blob = await downloadProposalPdf(p.id);
-                                      saveBlob(blob, `${(p.prop_number || p.id).replace(/[^\w.-]+/g, "_")}.pdf`);
+                                      const blob = await downloadProposalPdf(
+                                        p.id,
+                                      );
+                                      saveBlob(
+                                        blob,
+                                        `${(p.prop_number || p.id).replace(/[^\w.-]+/g, "_")}.pdf`,
+                                      );
                                     } catch (e: any) {
                                       alert(e?.message || "PDF failed");
                                     } finally {
@@ -3048,7 +3293,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 disabled:opacity-50"
                                   title="PDF"
                                 >
-                                  {proposalActionKey === `pdf_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Printer size={14} />}
+                                  {proposalActionKey === `pdf_${p.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Printer size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3074,11 +3326,20 @@ export default function ClientDetails() {
                                       setProposalActionKey(null);
                                     }
                                   }}
-                                  disabled={proposalActionKey === `email_${p.id}`}
+                                  disabled={
+                                    proposalActionKey === `email_${p.id}`
+                                  }
                                   className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                   title="Email"
                                 >
-                                  {proposalActionKey === `email_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                                  {proposalActionKey === `email_${p.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Mail size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3097,7 +3358,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100 disabled:opacity-50"
                                   title="WhatsApp"
                                 >
-                                  {proposalActionKey === `wa_${p.id}` ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                                  {proposalActionKey === `wa_${p.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <MessageCircle size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3115,7 +3383,9 @@ export default function ClientDetails() {
                     </table>
                   </div>
                 ) : (
-                  <div className="px-6 py-12 text-center text-[#9A8F82] text-[13px]">No proposals found for this client.</div>
+                  <div className="px-6 py-12 text-center text-[#9A8F82] text-[13px]">
+                    No proposals found for this client.
+                  </div>
                 )}
               </div>
 
@@ -3131,26 +3401,40 @@ export default function ClientDetails() {
                         ? "Loading..."
                         : `Proposal #${viewingProposal?.prop_number || "—"} — ${viewingProposal?.project_name || ""}`}
                     </h3>
-                    <button onClick={() => setViewingProposal(null)} className="text-[#9A8F82] hover:text-red-500">
+                    <button
+                      onClick={() => setViewingProposal(null)}
+                      className="text-[#9A8F82] hover:text-red-500"
+                    >
                       <X size={16} />
                     </button>
                   </div>
 
                   {proposalDetailLoading ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-[#C8922A]" size={22} />
+                      <Loader2
+                        className="animate-spin text-[#C8922A]"
+                        size={22}
+                      />
                     </div>
                   ) : viewingProposal ? (
                     <div className="p-6 space-y-4">
                       <div className="flex flex-wrap gap-2 items-center">
-                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${proposalBadge(viewingProposal.status)}`}>
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${proposalBadge(viewingProposal.status)}`}
+                        >
                           {viewingProposal.status}
                         </span>
                         {viewingProposal.valid_until && (
                           <span className="text-[12px] text-[#6B6259]">
                             Valid until:{" "}
                             <span className="font-semibold">
-                              {new Date(viewingProposal.valid_until).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                              {new Date(
+                                viewingProposal.valid_until,
+                              ).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
                             </span>
                           </span>
                         )}
@@ -3158,13 +3442,17 @@ export default function ClientDetails() {
 
                       {viewingProposal.notes && (
                         <div className="bg-[#FAF8F5] rounded-lg px-4 py-3 text-[13px] text-[#6B6259] border border-[#EDE8DF]">
-                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">Notes</span>
+                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">
+                            Notes
+                          </span>
                           {viewingProposal.notes}
                         </div>
                       )}
 
                       <div className="bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl p-4">
-                        <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-2">Content</p>
+                        <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-2">
+                          Content
+                        </p>
                         <pre className="whitespace-pre-wrap text-[12px] text-[#1C1C1C] font-mono leading-relaxed">
                           {viewingProposal.content || "—"}
                         </pre>
@@ -3172,7 +3460,9 @@ export default function ClientDetails() {
 
                       <div className="flex flex-wrap gap-2 pt-2">
                         <button
-                          onClick={() => openEditProposalModal(viewingProposal.id)}
+                          onClick={() =>
+                            openEditProposalModal(viewingProposal.id)
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#EDE8DF] rounded-lg text-[12px] font-semibold hover:border-[#C8922A]"
                         >
                           <Edit2 size={13} /> Edit
@@ -3181,8 +3471,13 @@ export default function ClientDetails() {
                         <button
                           onClick={async () => {
                             try {
-                              const blob = await downloadProposalPdf(viewingProposal.id);
-                              saveBlob(blob, `${(viewingProposal.prop_number || viewingProposal.id).replace(/[^\w.-]+/g, "_")}.pdf`);
+                              const blob = await downloadProposalPdf(
+                                viewingProposal.id,
+                              );
+                              saveBlob(
+                                blob,
+                                `${(viewingProposal.prop_number || viewingProposal.id).replace(/[^\w.-]+/g, "_")}.pdf`,
+                              );
                             } catch (e: any) {
                               alert(e?.message || "PDF failed");
                             }
@@ -3228,7 +3523,9 @@ export default function ClientDetails() {
                         </button>
 
                         <button
-                          onClick={() => handleProposalDelete(viewingProposal.id)}
+                          onClick={() =>
+                            handleProposalDelete(viewingProposal.id)
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg text-[12px] font-semibold hover:bg-red-100 ml-auto"
                         >
                           <Trash2 size={13} /> Delete
@@ -3250,7 +3547,8 @@ export default function ClientDetails() {
                 </div>
               ) : quotations.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-[#EDE8DF] p-16 text-center text-[#9A8F82] text-sm shadow-sm">
-                  No quotations yet. Click <strong>New Quotation</strong> to create one.
+                  No quotations yet. Click <strong>New Quotation</strong> to
+                  create one.
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl border border-[#EDE8DF] overflow-hidden shadow-sm">
@@ -3258,7 +3556,14 @@ export default function ClientDetails() {
                     <table className="w-full min-w-[980px] text-left">
                       <thead className="bg-[#FAF8F5] border-b border-[#EDE8DF]">
                         <tr>
-                          {["Quote #", "Project", "Tax", "Grand Total", "Status", "Actions"].map((h, i) => (
+                          {[
+                            "Quote #",
+                            "Project",
+                            "Tax",
+                            "Grand Total",
+                            "Status",
+                            "Actions",
+                          ].map((h, i) => (
                             <th
                               key={h}
                               className={`px-4 sm:px-5 py-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider ${
@@ -3273,29 +3578,44 @@ export default function ClientDetails() {
 
                       <tbody className="divide-y divide-[#F5F2ED]">
                         {quotations.map((q: any) => (
-                          <tr key={q.id} className="hover:bg-[#FAF8F5] transition-colors">
+                          <tr
+                            key={q.id}
+                            className="hover:bg-[#FAF8F5] transition-colors"
+                          >
                             <td className="px-4 sm:px-5 py-4">
                               <button
                                 onClick={() => fetchQuoteDetail(q.id)}
                                 className="text-[13px] font-bold text-[#C8922A] hover:underline"
                               >
                                 #{q.quote_number}{" "}
-                                <span className="text-[11px] text-[#9A8F82] font-normal">v{q.version}</span>
+                                <span className="text-[11px] text-[#9A8F82] font-normal">
+                                  v{q.version}
+                                </span>
                               </button>
                             </td>
 
-                            <td className="px-4 sm:px-5 py-4 text-[13px] text-[#1C1C1C] capitalize">{q.project_name}</td>
+                            <td className="px-4 sm:px-5 py-4 text-[13px] text-[#1C1C1C] capitalize">
+                              {q.project_name}
+                            </td>
 
                             <td className="px-4 sm:px-5 py-4 text-[11px] text-[#6B6259]">
-                              {parseFloat(q.igst_rate) > 0 ? `IGST ${q.igst_rate}%` : `CGST ${q.cgst_rate}% + SGST ${q.sgst_rate}%`}
+                              {parseFloat(q.igst_rate) > 0
+                                ? `IGST ${q.igst_rate}%`
+                                : `CGST ${q.cgst_rate}% + SGST ${q.sgst_rate}%`}
                             </td>
 
                             <td className="px-4 sm:px-5 py-4 text-right">
-                              <span className="text-[13px] font-bold text-[#1C1C1C]">₹{fmt(q.grand_total)}</span>
+                              <span className="text-[13px] font-bold text-[#1C1C1C]">
+                                ₹{fmt(q.grand_total)}
+                              </span>
                             </td>
 
                             <td className="px-4 sm:px-5 py-4 text-right">
-                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${quoteBadge(q.status)}`}>{q.status}</span>
+                              <span
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${quoteBadge(q.status)}`}
+                              >
+                                {q.status}
+                              </span>
                             </td>
 
                             <td className="px-4 sm:px-5 py-4 text-right">
@@ -3315,19 +3635,32 @@ export default function ClientDetails() {
                                     className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                     title="Mark Sent"
                                   >
-                                    {quoteActionKey === `send_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                    {quoteActionKey === `send_${q.id}` ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <Send size={14} />
+                                    )}
                                   </button>
                                 )}
 
-                                {(q.status === "draft" || q.status === "sent") && (
+                                {(q.status === "draft" ||
+                                  q.status === "sent") && (
                                   <button
                                     onClick={() => handleApproveQuote(q.id)}
-                                    disabled={quoteActionKey === `approve_${q.id}`}
+                                    disabled={
+                                      quoteActionKey === `approve_${q.id}`
+                                    }
                                     className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
                                     title="Approve"
                                   >
                                     {quoteActionKey === `approve_${q.id}` ? (
-                                      <Loader2 size={14} className="animate-spin" />
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                      />
                                     ) : (
                                       <CheckCircle size={14} />
                                     )}
@@ -3337,11 +3670,20 @@ export default function ClientDetails() {
                                 {q.status === "approved" && (
                                   <button
                                     onClick={() => handleReviseQuote(q.id)}
-                                    disabled={quoteActionKey === `revise_${q.id}`}
+                                    disabled={
+                                      quoteActionKey === `revise_${q.id}`
+                                    }
                                     className="p-1.5 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 disabled:opacity-50"
                                     title="Revise"
                                   >
-                                    {quoteActionKey === `revise_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                                    {quoteActionKey === `revise_${q.id}` ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <RotateCcw size={14} />
+                                    )}
                                   </button>
                                 )}
 
@@ -3349,7 +3691,9 @@ export default function ClientDetails() {
                                   onClick={async () => {
                                     setQuoteActionKey(`pdf_${q.id}`);
                                     try {
-                                      const blob = await downloadQuotationPdf(q.id);
+                                      const blob = await downloadQuotationPdf(
+                                        q.id,
+                                      );
                                       saveBlob(blob, `${q.quote_number}.pdf`);
                                     } catch (e: any) {
                                       alert(e?.message || "PDF failed");
@@ -3361,7 +3705,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 disabled:opacity-50"
                                   title="PDF"
                                 >
-                                  {quoteActionKey === `pdf_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <Printer size={14} />}
+                                  {quoteActionKey === `pdf_${q.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Printer size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3381,7 +3732,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                   title="Email"
                                 >
-                                  {quoteActionKey === `email_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                                  {quoteActionKey === `email_${q.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Mail size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3390,7 +3748,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100 disabled:opacity-50"
                                   title="WhatsApp"
                                 >
-                                  {quoteActionKey === `wa_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+                                  {quoteActionKey === `wa_${q.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <MessageCircle size={14} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3399,7 +3764,14 @@ export default function ClientDetails() {
                                   className="p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 disabled:opacity-50"
                                   title="Delete"
                                 >
-                                  {quoteActionKey === `del_${q.id}` ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                  {quoteActionKey === `del_${q.id}` ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Trash2 size={14} />
+                                  )}
                                 </button>
                               </div>
                             </td>
@@ -3423,14 +3795,20 @@ export default function ClientDetails() {
                         ? "Loading..."
                         : `Quote #${viewingQuote.quote_number} — ${viewingQuote.project_name} (v${viewingQuote.version})`}
                     </h3>
-                    <button onClick={() => setViewingQuote(null)} className="text-[#9A8F82] hover:text-red-500">
+                    <button
+                      onClick={() => setViewingQuote(null)}
+                      className="text-[#9A8F82] hover:text-red-500"
+                    >
                       <X size={16} />
                     </button>
                   </div>
 
                   {quoteDetailLoading ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-[#C8922A]" size={22} />
+                      <Loader2
+                        className="animate-spin text-[#C8922A]"
+                        size={22}
+                      />
                     </div>
                   ) : viewingQuote ? (
                     <div className="p-6 space-y-5">
@@ -3439,7 +3817,15 @@ export default function ClientDetails() {
                           <table className="w-full min-w-[780px] text-left text-[13px]">
                             <thead>
                               <tr className="border-b border-[#EDE8DF]">
-                                {["#", "Description", "Category", "Qty", "Unit", "Rate", "Amount"].map((h) => (
+                                {[
+                                  "#",
+                                  "Description",
+                                  "Category",
+                                  "Qty",
+                                  "Unit",
+                                  "Rate",
+                                  "Amount",
+                                ].map((h) => (
                                   <th
                                     key={h}
                                     className="pb-2 pr-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider whitespace-nowrap"
@@ -3452,14 +3838,30 @@ export default function ClientDetails() {
                             <tbody className="divide-y divide-[#F5F2ED]">
                               {viewingQuote.items.map((it: any, n: number) => (
                                 <tr key={it.id || n}>
-                                  <td className="py-2.5 pr-4 text-[#9A8F82]">{n + 1}</td>
-                                  <td className="py-2.5 pr-4 font-medium text-[#1C1C1C]">{it.description}</td>
-                                  <td className="py-2.5 pr-4 text-[#6B6259]">{it.category}</td>
-                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">{it.quantity}</td>
-                                  <td className="py-2.5 pr-4 text-[#6B6259]">{it.unit}</td>
-                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">₹{fmt(it.rate)}</td>
+                                  <td className="py-2.5 pr-4 text-[#9A8F82]">
+                                    {n + 1}
+                                  </td>
+                                  <td className="py-2.5 pr-4 font-medium text-[#1C1C1C]">
+                                    {it.description}
+                                  </td>
+                                  <td className="py-2.5 pr-4 text-[#6B6259]">
+                                    {it.category}
+                                  </td>
+                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">
+                                    {it.quantity}
+                                  </td>
+                                  <td className="py-2.5 pr-4 text-[#6B6259]">
+                                    {it.unit}
+                                  </td>
+                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">
+                                    ₹{fmt(it.rate)}
+                                  </td>
                                   <td className="py-2.5 font-bold text-[#1C1C1C]">
-                                    ₹{fmt((parseFloat(it.quantity) || 0) * (parseFloat(it.rate) || 0))}
+                                    ₹
+                                    {fmt(
+                                      (parseFloat(it.quantity) || 0) *
+                                        (parseFloat(it.rate) || 0),
+                                    )}
                                   </td>
                                 </tr>
                               ))}
@@ -3467,30 +3869,51 @@ export default function ClientDetails() {
                           </table>
                         </div>
                       ) : (
-                        <p className="text-[13px] text-[#9A8F82] italic">No items in this quotation.</p>
+                        <p className="text-[13px] text-[#9A8F82] italic">
+                          No items in this quotation.
+                        </p>
                       )}
 
                       <div className="ml-auto w-full sm:w-72 space-y-1.5 pt-4 border-t border-[#EDE8DF] text-[13px]">
-                        {([
-                          ["Subtotal", `₹${fmt(viewingQuote.subtotal)}`],
+                        {(
                           [
-                            `Discount (${
-                              viewingQuote.discount_type === "percentage"
-                                ? viewingQuote.discount_value + "%"
-                                : "₹" + fmt(viewingQuote.discount_value)
-                            })`,
-                            `-₹${fmt(viewingQuote.discount_amount)}`,
-                          ],
-                          ["Taxable Amount", `₹${fmt(viewingQuote.taxable_amount)}`],
-                          parseFloat(viewingQuote.cgst_amount) > 0 && [`CGST @ ${viewingQuote.cgst_rate}%`, `₹${fmt(viewingQuote.cgst_amount)}`],
-                          parseFloat(viewingQuote.sgst_amount) > 0 && [`SGST @ ${viewingQuote.sgst_rate}%`, `₹${fmt(viewingQuote.sgst_amount)}`],
-                          parseFloat(viewingQuote.igst_amount) > 0 && [`IGST @ ${viewingQuote.igst_rate}%`, `₹${fmt(viewingQuote.igst_amount)}`],
-                        ] as any[])
+                            ["Subtotal", `₹${fmt(viewingQuote.subtotal)}`],
+                            [
+                              `Discount (${
+                                viewingQuote.discount_type === "percentage"
+                                  ? viewingQuote.discount_value + "%"
+                                  : "₹" + fmt(viewingQuote.discount_value)
+                              })`,
+                              `-₹${fmt(viewingQuote.discount_amount)}`,
+                            ],
+                            [
+                              "Taxable Amount",
+                              `₹${fmt(viewingQuote.taxable_amount)}`,
+                            ],
+                            parseFloat(viewingQuote.cgst_amount) > 0 && [
+                              `CGST @ ${viewingQuote.cgst_rate}%`,
+                              `₹${fmt(viewingQuote.cgst_amount)}`,
+                            ],
+                            parseFloat(viewingQuote.sgst_amount) > 0 && [
+                              `SGST @ ${viewingQuote.sgst_rate}%`,
+                              `₹${fmt(viewingQuote.sgst_amount)}`,
+                            ],
+                            parseFloat(viewingQuote.igst_amount) > 0 && [
+                              `IGST @ ${viewingQuote.igst_rate}%`,
+                              `₹${fmt(viewingQuote.igst_amount)}`,
+                            ],
+                          ] as any[]
+                        )
                           .filter(Boolean)
                           .map(([label, val]: any) => (
-                            <div key={label} className="flex justify-between text-[#6B6259]">
+                            <div
+                              key={label}
+                              className="flex justify-between text-[#6B6259]"
+                            >
                               <span>{label}</span>
-                              <span className="font-medium text-[#1C1C1C]">{val}</span>
+                              <span className="font-medium text-[#1C1C1C]">
+                                {val}
+                              </span>
                             </div>
                           ))}
                         <div className="flex justify-between font-bold text-[15px] pt-2 border-t border-[#EDE8DF] text-[#1C1C1C]">
@@ -3501,7 +3924,9 @@ export default function ClientDetails() {
 
                       {viewingQuote.notes && (
                         <div className="bg-[#FAF8F5] rounded-lg px-4 py-3 text-[13px] text-[#6B6259] border border-[#EDE8DF]">
-                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">Notes</span>
+                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">
+                            Notes
+                          </span>
                           {viewingQuote.notes}
                         </div>
                       )}
@@ -3525,7 +3950,8 @@ export default function ClientDetails() {
                           </button>
                         )}
 
-                        {(viewingQuote.status === "draft" || viewingQuote.status === "sent") && (
+                        {(viewingQuote.status === "draft" ||
+                          viewingQuote.status === "sent") && (
                           <button
                             onClick={() => handleApproveQuote(viewingQuote.id)}
                             disabled={!!quoteActionKey}
@@ -3548,8 +3974,13 @@ export default function ClientDetails() {
                         <button
                           onClick={async () => {
                             try {
-                              const blob = await downloadQuotationPdf(viewingQuote.id);
-                              saveBlob(blob, `${viewingQuote.quote_number}.pdf`);
+                              const blob = await downloadQuotationPdf(
+                                viewingQuote.id,
+                              );
+                              saveBlob(
+                                blob,
+                                `${viewingQuote.quote_number}.pdf`,
+                              );
                             } catch (e: any) {
                               alert(e?.message || "PDF failed");
                             }
@@ -3623,10 +4054,21 @@ export default function ClientDetails() {
                     bg: "bg-amber-50",
                   },
                 ].map((s) => (
-                  <div key={s.label} className="bg-white border border-[#EDE8DF] rounded-xl p-4 shadow-sm">
-                    <div className={`inline-flex p-2 ${s.bg} rounded-lg ${s.color} mb-2`}>{s.icon}</div>
-                    <p className="text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider">{s.label}</p>
-                    <p className={`text-[15px] font-bold ${s.color} mt-0.5`}>{s.value}</p>
+                  <div
+                    key={s.label}
+                    className="bg-white border border-[#EDE8DF] rounded-xl p-4 shadow-sm"
+                  >
+                    <div
+                      className={`inline-flex p-2 ${s.bg} rounded-lg ${s.color} mb-2`}
+                    >
+                      {s.icon}
+                    </div>
+                    <p className="text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider">
+                      {s.label}
+                    </p>
+                    <p className={`text-[15px] font-bold ${s.color} mt-0.5`}>
+                      {s.value}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -3641,8 +4083,12 @@ export default function ClientDetails() {
                   <div className="w-12 h-12 bg-[#FDF3E3] rounded-full flex items-center justify-center mx-auto mb-3">
                     <FileStack size={22} className="text-[#C8922A]" />
                   </div>
-                  <p className="text-[#9A8F82] text-sm font-medium">No invoices yet.</p>
-                  <p className="text-[#9A8F82] text-[12px] mt-1">Generate one from an approved quotation.</p>
+                  <p className="text-[#9A8F82] text-sm font-medium">
+                    No invoices yet.
+                  </p>
+                  <p className="text-[#9A8F82] text-[12px] mt-1">
+                    Generate one from an approved quotation.
+                  </p>
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl border border-[#EDE8DF] overflow-hidden shadow-sm">
@@ -3650,7 +4096,16 @@ export default function ClientDetails() {
                     <table className="w-full min-w-[1050px] text-left">
                       <thead className="bg-[#FAF8F5] border-b border-[#EDE8DF]">
                         <tr>
-                          {["Invoice #", "Project", "Type", "Date", "Due Date", "Grand Total", "Status", "Actions"].map((h, i) => (
+                          {[
+                            "Invoice #",
+                            "Project",
+                            "Type",
+                            "Date",
+                            "Due Date",
+                            "Grand Total",
+                            "Status",
+                            "Actions",
+                          ].map((h, i) => (
                             <th
                               key={h}
                               className={`px-4 py-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider ${
@@ -3665,7 +4120,10 @@ export default function ClientDetails() {
 
                       <tbody className="divide-y divide-[#F5F2ED]">
                         {invoices.map((inv: any) => (
-                          <tr key={inv.id} className="hover:bg-[#FAF8F5] transition-colors">
+                          <tr
+                            key={inv.id}
+                            className="hover:bg-[#FAF8F5] transition-colors"
+                          >
                             <td className="px-4 py-4">
                               <button
                                 onClick={() => fetchInvoiceDetail(inv.id)}
@@ -3675,38 +4133,68 @@ export default function ClientDetails() {
                               </button>
                             </td>
 
-                            <td className="px-4 py-4 text-[13px] text-[#1C1C1C] capitalize">{inv.project_name}</td>
+                            <td className="px-4 py-4 text-[13px] text-[#1C1C1C] capitalize">
+                              {inv.project_name}
+                            </td>
 
                             <td className="px-4 py-4">
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${invoiceTypeBadge(inv.invoice_type)}`}>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${invoiceTypeBadge(inv.invoice_type)}`}
+                              >
                                 {inv.invoice_type}
                               </span>
                               {inv.milestone_label && (
-                                <p className="text-[10px] text-[#9A8F82] mt-0.5 truncate max-w-[140px]">{inv.milestone_label}</p>
+                                <p className="text-[10px] text-[#9A8F82] mt-0.5 truncate max-w-[140px]">
+                                  {inv.milestone_label}
+                                </p>
                               )}
                             </td>
 
                             <td className="px-4 py-4 text-[12px] text-[#6B6259]">
                               {inv.invoice_date
-                                ? new Date(inv.invoice_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                                ? new Date(inv.invoice_date).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    },
+                                  )
                                 : "—"}
                             </td>
 
                             <td className="px-4 py-4 text-[12px] text-[#6B6259]">
                               {inv.due_date
-                                ? new Date(inv.due_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                                ? new Date(inv.due_date).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    },
+                                  )
                                 : "—"}
                             </td>
 
                             <td className="px-4 py-4 text-right">
-                              <p className="text-[13px] font-bold text-[#1C1C1C]">₹{fmt(inv.grand_total)}</p>
-                              {parseFloat(inv.balance_due) > 0 && parseFloat(inv.balance_due) !== parseFloat(inv.grand_total) && (
-                                <p className="text-[10px] text-amber-600 font-medium">Bal: ₹{fmt(inv.balance_due)}</p>
-                              )}
+                              <p className="text-[13px] font-bold text-[#1C1C1C]">
+                                ₹{fmt(inv.grand_total)}
+                              </p>
+                              {parseFloat(inv.balance_due) > 0 &&
+                                parseFloat(inv.balance_due) !==
+                                  parseFloat(inv.grand_total) && (
+                                  <p className="text-[10px] text-amber-600 font-medium">
+                                    Bal: ₹{fmt(inv.balance_due)}
+                                  </p>
+                                )}
                             </td>
 
                             <td className="px-4 py-4 text-right">
-                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${invoiceBadge(inv.status)}`}>{inv.status}</span>
+                              <span
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${invoiceBadge(inv.status)}`}
+                              >
+                                {inv.status}
+                              </span>
                             </td>
 
                             <td className="px-4 py-4 text-right">
@@ -3714,27 +4202,51 @@ export default function ClientDetails() {
                                 {inv.status === "draft" && (
                                   <button
                                     onClick={() => handleSendInvoice(inv.id)}
-                                    disabled={invoiceActionKey === `issue_${inv.id}`}
+                                    disabled={
+                                      invoiceActionKey === `issue_${inv.id}`
+                                    }
                                     title="Mark Issued"
                                     className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                   >
-                                    {invoiceActionKey === `issue_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                                    {invoiceActionKey === `issue_${inv.id}` ? (
+                                      <Loader2
+                                        size={13}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <Send size={13} />
+                                    )}
                                   </button>
                                 )}
 
-                                {(inv.status === "issued" || inv.status === "partial") && (
+                                {(inv.status === "issued" ||
+                                  inv.status === "partial") && (
                                   <button
                                     onClick={() => handleMarkPaid(inv.id)}
-                                    disabled={invoiceActionKey === `paid_${inv.id}`}
+                                    disabled={
+                                      invoiceActionKey === `paid_${inv.id}`
+                                    }
                                     title="Mark Paid"
                                     className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
                                   >
-                                    {invoiceActionKey === `paid_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Banknote size={13} />}
+                                    {invoiceActionKey === `paid_${inv.id}` ? (
+                                      <Loader2
+                                        size={13}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <Banknote size={13} />
+                                    )}
                                   </button>
                                 )}
 
                                 <button
-                                  onClick={() => downloadInvoicePDF(inv.id, inv.invoice_number)}
+                                  onClick={() =>
+                                    downloadInvoicePDF(
+                                      inv.id,
+                                      inv.invoice_number,
+                                    )
+                                  }
                                   title="PDF"
                                   className="p-1.5 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100"
                                 >
@@ -3764,11 +4276,20 @@ export default function ClientDetails() {
                                       setInvoiceActionKey(null);
                                     }
                                   }}
-                                  disabled={invoiceActionKey === `email_${inv.id}`}
+                                  disabled={
+                                    invoiceActionKey === `email_${inv.id}`
+                                  }
                                   title="Email"
                                   className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                                 >
-                                  {invoiceActionKey === `email_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
+                                  {invoiceActionKey === `email_${inv.id}` ? (
+                                    <Loader2
+                                      size={13}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Mail size={13} />
+                                  )}
                                 </button>
 
                                 <button
@@ -3787,16 +4308,32 @@ export default function ClientDetails() {
                                   title="WhatsApp"
                                   className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100 disabled:opacity-50"
                                 >
-                                  {invoiceActionKey === `wa_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
+                                  {invoiceActionKey === `wa_${inv.id}` ? (
+                                    <Loader2
+                                      size={13}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <MessageCircle size={13} />
+                                  )}
                                 </button>
 
                                 <button
                                   onClick={() => handleDeleteInvoice(inv.id)}
-                                  disabled={invoiceActionKey === `del_${inv.id}`}
+                                  disabled={
+                                    invoiceActionKey === `del_${inv.id}`
+                                  }
                                   title="Delete"
                                   className="p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 disabled:opacity-50"
                                 >
-                                  {invoiceActionKey === `del_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                  {invoiceActionKey === `del_${inv.id}` ? (
+                                    <Loader2
+                                      size={13}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Trash2 size={13} />
+                                  )}
                                 </button>
                               </div>
                             </td>
@@ -3816,44 +4353,80 @@ export default function ClientDetails() {
                 >
                   <div className="px-6 py-4 bg-[#FAF8F5] border-b border-[#EDE8DF] flex items-center justify-between">
                     <h3 className="text-[13px] font-bold text-[#1C1C1C]">
-                      {invoiceDetailLoading ? "Loading..." : `Invoice #${viewingInvoice.invoice_number} — ${viewingInvoice.project_name}`}
+                      {invoiceDetailLoading
+                        ? "Loading..."
+                        : `Invoice #${viewingInvoice.invoice_number} — ${viewingInvoice.project_name}`}
                     </h3>
-                    <button onClick={() => setViewingInvoice(null)} className="text-[#9A8F82] hover:text-red-500">
+                    <button
+                      onClick={() => setViewingInvoice(null)}
+                      className="text-[#9A8F82] hover:text-red-500"
+                    >
                       <X size={16} />
                     </button>
                   </div>
 
                   {invoiceDetailLoading ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-[#C8922A]" size={22} />
+                      <Loader2
+                        className="animate-spin text-[#C8922A]"
+                        size={22}
+                      />
                     </div>
                   ) : viewingInvoice ? (
                     <div className="p-6 space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF8F5] rounded-xl p-4 border border-[#EDE8DF] text-[13px]">
                         <div>
-                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">Client</p>
-                          <p className="font-semibold text-[#1C1C1C]">{viewingInvoice.client_name}</p>
+                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">
+                            Client
+                          </p>
+                          <p className="font-semibold text-[#1C1C1C]">
+                            {viewingInvoice.client_name}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">Invoice Type</p>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${invoiceTypeBadge(viewingInvoice.invoice_type)}`}>
+                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">
+                            Invoice Type
+                          </p>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${invoiceTypeBadge(viewingInvoice.invoice_type)}`}
+                          >
                             {viewingInvoice.invoice_type}
                           </span>
-                          {viewingInvoice.milestone_label && <span className="ml-2 text-[12px] text-[#6B6259]">— {viewingInvoice.milestone_label}</span>}
+                          {viewingInvoice.milestone_label && (
+                            <span className="ml-2 text-[12px] text-[#6B6259]">
+                              — {viewingInvoice.milestone_label}
+                            </span>
+                          )}
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">Invoice Date</p>
+                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">
+                            Invoice Date
+                          </p>
                           <p className="text-[#1C1C1C]">
                             {viewingInvoice.invoice_date
-                              ? new Date(viewingInvoice.invoice_date).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
+                              ? new Date(
+                                  viewingInvoice.invoice_date,
+                                ).toLocaleDateString("en-IN", {
+                                  day: "2-digit",
+                                  month: "long",
+                                  year: "numeric",
+                                })
                               : "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">Due Date</p>
+                          <p className="text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider mb-1">
+                            Due Date
+                          </p>
                           <p className="text-[#1C1C1C]">
                             {viewingInvoice.due_date
-                              ? new Date(viewingInvoice.due_date).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })
+                              ? new Date(
+                                  viewingInvoice.due_date,
+                                ).toLocaleDateString("en-IN", {
+                                  day: "2-digit",
+                                  month: "long",
+                                  year: "numeric",
+                                })
                               : "—"}
                           </p>
                         </div>
@@ -3864,47 +4437,97 @@ export default function ClientDetails() {
                           <table className="w-full min-w-[780px] text-left text-[13px]">
                             <thead>
                               <tr className="border-b border-[#EDE8DF]">
-                                {["#", "Description", "Category", "Qty", "Unit", "Rate", "Amount"].map((h) => (
-                                  <th key={h} className="pb-2 pr-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider whitespace-nowrap">
+                                {[
+                                  "#",
+                                  "Description",
+                                  "Category",
+                                  "Qty",
+                                  "Unit",
+                                  "Rate",
+                                  "Amount",
+                                ].map((h) => (
+                                  <th
+                                    key={h}
+                                    className="pb-2 pr-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider whitespace-nowrap"
+                                  >
                                     {h}
                                   </th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F5F2ED]">
-                              {viewingInvoice.items.map((it: any, n: number) => (
-                                <tr key={it.id || n}>
-                                  <td className="py-2.5 pr-4 text-[#9A8F82]">{n + 1}</td>
-                                  <td className="py-2.5 pr-4 font-medium text-[#1C1C1C]">{it.description}</td>
-                                  <td className="py-2.5 pr-4 text-[#6B6259]">{it.category}</td>
-                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">{it.quantity}</td>
-                                  <td className="py-2.5 pr-4 text-[#6B6259]">{it.unit}</td>
-                                  <td className="py-2.5 pr-4 text-[#1C1C1C]">₹{fmt(it.rate)}</td>
-                                  <td className="py-2.5 font-bold text-[#1C1C1C]">
-                                    ₹{fmt((parseFloat(it.quantity) || 0) * (parseFloat(it.rate) || 0))}
-                                  </td>
-                                </tr>
-                              ))}
+                              {viewingInvoice.items.map(
+                                (it: any, n: number) => (
+                                  <tr key={it.id || n}>
+                                    <td className="py-2.5 pr-4 text-[#9A8F82]">
+                                      {n + 1}
+                                    </td>
+                                    <td className="py-2.5 pr-4 font-medium text-[#1C1C1C]">
+                                      {it.description}
+                                    </td>
+                                    <td className="py-2.5 pr-4 text-[#6B6259]">
+                                      {it.category}
+                                    </td>
+                                    <td className="py-2.5 pr-4 text-[#1C1C1C]">
+                                      {it.quantity}
+                                    </td>
+                                    <td className="py-2.5 pr-4 text-[#6B6259]">
+                                      {it.unit}
+                                    </td>
+                                    <td className="py-2.5 pr-4 text-[#1C1C1C]">
+                                      ₹{fmt(it.rate)}
+                                    </td>
+                                    <td className="py-2.5 font-bold text-[#1C1C1C]">
+                                      ₹
+                                      {fmt(
+                                        (parseFloat(it.quantity) || 0) *
+                                          (parseFloat(it.rate) || 0),
+                                      )}
+                                    </td>
+                                  </tr>
+                                ),
+                              )}
                             </tbody>
                           </table>
                         </div>
                       ) : (
-                        <p className="text-[13px] text-[#9A8F82] italic">No line items.</p>
+                        <p className="text-[13px] text-[#9A8F82] italic">
+                          No line items.
+                        </p>
                       )}
 
                       <div className="ml-auto w-full sm:w-72 space-y-1.5 pt-4 border-t border-[#EDE8DF] text-[13px]">
-                        {([
-                          ["Subtotal", `₹${fmt(viewingInvoice.subtotal)}`],
-                          parseFloat(viewingInvoice.cgst_amount) > 0 && [`CGST @ ${viewingInvoice.cgst_rate || ""}%`, `₹${fmt(viewingInvoice.cgst_amount)}`],
-                          parseFloat(viewingInvoice.sgst_amount) > 0 && [`SGST @ ${viewingInvoice.sgst_rate || ""}%`, `₹${fmt(viewingInvoice.sgst_amount)}`],
-                          parseFloat(viewingInvoice.igst_amount) > 0 && [`IGST @ ${viewingInvoice.igst_rate || ""}%`, `₹${fmt(viewingInvoice.igst_amount)}`],
-                          parseFloat(viewingInvoice.total_tax) > 0 && ["Total Tax", `₹${fmt(viewingInvoice.total_tax)}`],
-                        ] as any[])
+                        {(
+                          [
+                            ["Subtotal", `₹${fmt(viewingInvoice.subtotal)}`],
+                            parseFloat(viewingInvoice.cgst_amount) > 0 && [
+                              `CGST @ ${viewingInvoice.cgst_rate || ""}%`,
+                              `₹${fmt(viewingInvoice.cgst_amount)}`,
+                            ],
+                            parseFloat(viewingInvoice.sgst_amount) > 0 && [
+                              `SGST @ ${viewingInvoice.sgst_rate || ""}%`,
+                              `₹${fmt(viewingInvoice.sgst_amount)}`,
+                            ],
+                            parseFloat(viewingInvoice.igst_amount) > 0 && [
+                              `IGST @ ${viewingInvoice.igst_rate || ""}%`,
+                              `₹${fmt(viewingInvoice.igst_amount)}`,
+                            ],
+                            parseFloat(viewingInvoice.total_tax) > 0 && [
+                              "Total Tax",
+                              `₹${fmt(viewingInvoice.total_tax)}`,
+                            ],
+                          ] as any[]
+                        )
                           .filter(Boolean)
                           .map(([label, val]: any) => (
-                            <div key={label} className="flex justify-between text-[#6B6259]">
+                            <div
+                              key={label}
+                              className="flex justify-between text-[#6B6259]"
+                            >
                               <span>{label}</span>
-                              <span className="font-medium text-[#1C1C1C]">{val}</span>
+                              <span className="font-medium text-[#1C1C1C]">
+                                {val}
+                              </span>
                             </div>
                           ))}
                         <div className="flex justify-between font-bold text-[15px] pt-2 border-t border-[#EDE8DF] text-[#1C1C1C]">
@@ -3915,7 +4538,9 @@ export default function ClientDetails() {
 
                       {viewingInvoice.notes && (
                         <div className="bg-[#FAF8F5] rounded-lg px-4 py-3 text-[13px] text-[#6B6259] border border-[#EDE8DF]">
-                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">Notes</span>
+                          <span className="font-bold text-[#9A8F82] uppercase text-[10px] block mb-1 tracking-wide">
+                            Notes
+                          </span>
                           {viewingInvoice.notes}
                         </div>
                       )}
@@ -3939,7 +4564,8 @@ export default function ClientDetails() {
                           </button>
                         )}
 
-                        {(viewingInvoice.status === "issued" || viewingInvoice.status === "partial") && (
+                        {(viewingInvoice.status === "issued" ||
+                          viewingInvoice.status === "partial") && (
                           <button
                             onClick={() => handleMarkPaid(viewingInvoice.id)}
                             disabled={!!invoiceActionKey}
@@ -3950,14 +4576,21 @@ export default function ClientDetails() {
                         )}
 
                         <button
-                          onClick={() => downloadInvoicePDF(viewingInvoice.id, viewingInvoice.invoice_number)}
+                          onClick={() =>
+                            downloadInvoicePDF(
+                              viewingInvoice.id,
+                              viewingInvoice.invoice_number,
+                            )
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#EDE8DF] rounded-lg text-[12px] font-semibold"
                         >
                           <Printer size={13} /> PDF
                         </button>
 
                         <button
-                          onClick={() => downloadInvoiceCSV(viewingInvoice as Invoice)}
+                          onClick={() =>
+                            downloadInvoiceCSV(viewingInvoice as Invoice)
+                          }
                           className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#EDE8DF] rounded-lg text-[12px] font-semibold"
                         >
                           <FileSpreadsheet size={13} /> CSV
@@ -4012,14 +4645,35 @@ export default function ClientDetails() {
       {/* PROJECT MODAL */}
       {/* ─────────────────────────────────────────────────────────────────────── */}
       {isProjectModalOpen && (
-        <Modal title={editingProjectId ? "Update Project" : "Add New Project"} onClose={closeProjectModal} maxW="max-w-2xl">
-          <form onSubmit={handleProjectSubmit} className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[80vh] overflow-y-auto">
-            {projectApiError && <ErrorBanner error={projectApiError} cls="sm:col-span-2" />}
+        <Modal
+          title={editingProjectId ? "Update Project" : "Add New Project"}
+          onClose={closeProjectModal}
+          maxW="max-w-2xl"
+        >
+          <form
+            onSubmit={handleProjectSubmit}
+            className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[80vh] overflow-y-auto"
+          >
+            {projectApiError && (
+              <ErrorBanner error={projectApiError} cls="sm:col-span-2" />
+            )}
             <FF label="Project Name *" cls="sm:col-span-2">
-              <input required name="name" value={projectForm.name} onChange={handleProjectInputChange} placeholder="Project name" className={inputCls} />
+              <input
+                required
+                name="name"
+                value={projectForm.name}
+                onChange={handleProjectInputChange}
+                placeholder="Project name"
+                className={inputCls}
+              />
             </FF>
             <FF label="Property Type">
-              <select name="property_type" value={projectForm.property_type} onChange={handleProjectInputChange} className={inputCls}>
+              <select
+                name="property_type"
+                value={projectForm.property_type}
+                onChange={handleProjectInputChange}
+                className={inputCls}
+              >
                 {["apartment", "villa", "office", "commercial"].map((v) => (
                   <option key={v} value={v}>
                     {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -4028,26 +4682,61 @@ export default function ClientDetails() {
               </select>
             </FF>
             <FF label="Area (Sq. Ft.)">
-              <input type="number" name="area_sqft" value={projectForm.area_sqft} onChange={handleProjectInputChange} placeholder="1200" className={inputCls} />
+              <input
+                type="number"
+                name="area_sqft"
+                value={projectForm.area_sqft}
+                onChange={handleProjectInputChange}
+                placeholder="1200"
+                className={inputCls}
+              />
             </FF>
             <FF label="Budget (₹)">
-              <input type="number" name="budget_range" value={projectForm.budget_range} onChange={handleProjectInputChange} placeholder="500000" className={inputCls} />
+              <input
+                type="number"
+                name="budget_range"
+                value={projectForm.budget_range}
+                onChange={handleProjectInputChange}
+                placeholder="500000"
+                className={inputCls}
+              />
             </FF>
             <FF label="Status">
-              <select name="status" value={projectForm.status} onChange={handleProjectInputChange} className={inputCls}>
+              <select
+                name="status"
+                value={projectForm.status}
+                onChange={handleProjectInputChange}
+                className={inputCls}
+              >
                 <option value="active">Active</option>
                 <option value="completed">Completed</option>
                 <option value="on_hold">On Hold</option>
               </select>
             </FF>
             <FF label="Start Date">
-              <input type="date" name="start_date" value={projectForm.start_date} onChange={handleProjectInputChange} className={inputCls} />
+              <input
+                type="date"
+                name="start_date"
+                value={projectForm.start_date}
+                onChange={handleProjectInputChange}
+                className={inputCls}
+              />
             </FF>
             <FF label="End Date">
-              <input type="date" name="expected_end_date" value={projectForm.expected_end_date} onChange={handleProjectInputChange} className={inputCls} />
+              <input
+                type="date"
+                name="expected_end_date"
+                value={projectForm.expected_end_date}
+                onChange={handleProjectInputChange}
+                className={inputCls}
+              />
             </FF>
             <div className="sm:col-span-2 pt-4 border-t border-[#F5F2ED]">
-              <MFooter onCancel={closeProjectModal} isSubmitting={isProjectSubmitting} label={editingProjectId ? "Update Project" : "Save Project"} />
+              <MFooter
+                onCancel={closeProjectModal}
+                isSubmitting={isProjectSubmitting}
+                label={editingProjectId ? "Update Project" : "Save Project"}
+              />
             </div>
           </form>
         </Modal>
@@ -4055,25 +4744,73 @@ export default function ClientDetails() {
 
       {/* TEMPLATE MODAL */}
       {isTemplateModalOpen && (
-        <Modal title="Create New Template" onClose={() => { setIsTemplateModalOpen(false); setTemplateError(null); }} maxW="max-w-2xl">
-          <form onSubmit={handleTemplateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <Modal
+          title="Create New Template"
+          onClose={() => {
+            setIsTemplateModalOpen(false);
+            setTemplateError(null);
+          }}
+          maxW="max-w-2xl"
+        >
+          <form
+            onSubmit={handleTemplateSubmit}
+            className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
+          >
             {templateError && <ErrorBanner error={templateError} />}
             <FF label="Template Name *">
-              <input required value={templateForm.name} onChange={(e) => setTemplateForm((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Residential Standard" className={inputCls} />
+              <input
+                required
+                value={templateForm.name}
+                onChange={(e) =>
+                  setTemplateForm((p) => ({ ...p, name: e.target.value }))
+                }
+                placeholder="e.g. Residential Standard"
+                className={inputCls}
+              />
             </FF>
             <FF label="Description">
-              <input value={templateForm.description} onChange={(e) => setTemplateForm((p) => ({ ...p, description: e.target.value }))} placeholder="Short description" className={inputCls} />
+              <input
+                value={templateForm.description}
+                onChange={(e) =>
+                  setTemplateForm((p) => ({
+                    ...p,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Short description"
+                className={inputCls}
+              />
             </FF>
             <FF label="Content *">
-              <textarea required rows={10} value={templateForm.content} onChange={(e) => setTemplateForm((p) => ({ ...p, content: e.target.value }))} placeholder={"Dear {{client_name}},\n\n..."} className={`${inputCls} resize-none font-mono text-[12px]`} />
+              <textarea
+                required
+                rows={10}
+                value={templateForm.content}
+                onChange={(e) =>
+                  setTemplateForm((p) => ({ ...p, content: e.target.value }))
+                }
+                placeholder={"Dear {{client_name}},\n\n..."}
+                className={`${inputCls} resize-none font-mono text-[12px]`}
+              />
               <p className="text-[11px] text-[#9A8F82] mt-1">
-                Vars: <code className="bg-[#F5F2ED] px-1 rounded">{"{{client_name}}"}</code>{" "}
-                <code className="bg-[#F5F2ED] px-1 rounded">{"{{project_name}}"}</code>{" "}
-                <code className="bg-[#F5F2ED] px-1 rounded">{"{{property_type}}"}</code>
+                Vars:{" "}
+                <code className="bg-[#F5F2ED] px-1 rounded">
+                  {"{{client_name}}"}
+                </code>{" "}
+                <code className="bg-[#F5F2ED] px-1 rounded">
+                  {"{{project_name}}"}
+                </code>{" "}
+                <code className="bg-[#F5F2ED] px-1 rounded">
+                  {"{{property_type}}"}
+                </code>
               </p>
             </FF>
             <div className="pt-4 border-t border-[#F5F2ED]">
-              <MFooter onCancel={() => setIsTemplateModalOpen(false)} isSubmitting={templateSubmitting} label="Save Template" />
+              <MFooter
+                onCancel={() => setIsTemplateModalOpen(false)}
+                isSubmitting={templateSubmitting}
+                label="Save Template"
+              />
             </div>
           </form>
         </Modal>
@@ -4081,7 +4818,11 @@ export default function ClientDetails() {
 
       {/* PROPOSAL MODAL */}
       {isProposalModalOpen && (
-        <Modal title={editingProposalId ? "Edit Proposal" : "Create Proposal"} onClose={() => setIsProposalModalOpen(false)} maxW="max-w-2xl">
+        <Modal
+          title={editingProposalId ? "Edit Proposal" : "Create Proposal"}
+          onClose={() => setIsProposalModalOpen(false)}
+          maxW="max-w-2xl"
+        >
           <div className="px-6 pt-5">
             <div className="flex items-center gap-1 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl p-1 w-fit mb-4">
               {["template", "manual"].map((m) => (
@@ -4090,7 +4831,9 @@ export default function ClientDetails() {
                   type="button"
                   onClick={() => setProposalMode(m as any)}
                   className={`px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                    proposalMode === m ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]" : "text-[#6B6259]"
+                    proposalMode === m
+                      ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]"
+                      : "text-[#6B6259]"
                   }`}
                 >
                   {m === "template" ? "From Template" : "Manual"}
@@ -4099,11 +4842,21 @@ export default function ClientDetails() {
             </div>
           </div>
 
-          <form onSubmit={handleProposalSubmit} className="px-6 pb-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <form
+            onSubmit={handleProposalSubmit}
+            className="px-6 pb-6 space-y-4 max-h-[70vh] overflow-y-auto"
+          >
             {proposalError && <ErrorBanner error={proposalError} />}
 
             <FF label="Project *">
-              <select required value={proposalForm.project} onChange={(e) => setProposalForm((p) => ({ ...p, project: e.target.value }))} className={inputCls}>
+              <select
+                required
+                value={proposalForm.project}
+                onChange={(e) =>
+                  setProposalForm((p) => ({ ...p, project: e.target.value }))
+                }
+                className={inputCls}
+              >
                 <option value="">— Select —</option>
                 {projects.map((pr: any) => (
                   <option key={pr.id} value={pr.id}>
@@ -4114,12 +4867,30 @@ export default function ClientDetails() {
             </FF>
 
             <FF label="Title *">
-              <input required value={proposalForm.title} onChange={(e) => setProposalForm((p) => ({ ...p, title: e.target.value }))} placeholder="Interior Design Proposal..." className={inputCls} />
+              <input
+                required
+                value={proposalForm.title}
+                onChange={(e) =>
+                  setProposalForm((p) => ({ ...p, title: e.target.value }))
+                }
+                placeholder="Interior Design Proposal..."
+                className={inputCls}
+              />
             </FF>
 
             {proposalMode === "template" ? (
               <FF label="Template *">
-                <select required value={proposalForm.use_template} onChange={(e) => setProposalForm((p) => ({ ...p, use_template: e.target.value }))} className={inputCls}>
+                <select
+                  required
+                  value={proposalForm.use_template}
+                  onChange={(e) =>
+                    setProposalForm((p) => ({
+                      ...p,
+                      use_template: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                >
                   <option value="">— Select —</option>
                   {templates.map((t: any) => (
                     <option key={t.id} value={t.id}>
@@ -4130,21 +4901,53 @@ export default function ClientDetails() {
               </FF>
             ) : (
               <FF label="Content *">
-                <textarea required rows={7} value={proposalForm.content} onChange={(e) => setProposalForm((p) => ({ ...p, content: e.target.value }))} placeholder={"Dear Client,\n\n..."} className={`${inputCls} resize-none font-mono text-[12px]`} />
+                <textarea
+                  required
+                  rows={7}
+                  value={proposalForm.content}
+                  onChange={(e) =>
+                    setProposalForm((p) => ({ ...p, content: e.target.value }))
+                  }
+                  placeholder={"Dear Client,\n\n..."}
+                  className={`${inputCls} resize-none font-mono text-[12px]`}
+                />
               </FF>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FF label="Valid Until">
-                <input type="date" value={proposalForm.valid_until} onChange={(e) => setProposalForm((p) => ({ ...p, valid_until: e.target.value }))} className={inputCls} />
+                <input
+                  type="date"
+                  value={proposalForm.valid_until}
+                  onChange={(e) =>
+                    setProposalForm((p) => ({
+                      ...p,
+                      valid_until: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                />
               </FF>
               <FF label="Notes">
-                <input value={proposalForm.notes} onChange={(e) => setProposalForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Optional" className={inputCls} />
+                <input
+                  value={proposalForm.notes}
+                  onChange={(e) =>
+                    setProposalForm((p) => ({ ...p, notes: e.target.value }))
+                  }
+                  placeholder="Optional"
+                  className={inputCls}
+                />
               </FF>
             </div>
 
             <div className="pt-4 border-t border-[#F5F2ED]">
-              <MFooter onCancel={() => setIsProposalModalOpen(false)} isSubmitting={proposalSubmitting} label={editingProposalId ? "Update Proposal" : "Create Proposal"} />
+              <MFooter
+                onCancel={() => setIsProposalModalOpen(false)}
+                isSubmitting={proposalSubmitting}
+                label={
+                  editingProposalId ? "Update Proposal" : "Create Proposal"
+                }
+              />
             </div>
           </form>
         </Modal>
@@ -4152,13 +4955,29 @@ export default function ClientDetails() {
 
       {/* QUOTATION MODAL */}
       {isQuoteModalOpen && (
-        <Modal title={editingQuoteId ? "Edit Quotation" : "Create New Quotation"} onClose={closeQuoteModal} maxW="max-w-4xl">
-          <form onSubmit={handleQuoteSubmit} className="max-h-[88vh] overflow-y-auto">
+        <Modal
+          title={editingQuoteId ? "Edit Quotation" : "Create New Quotation"}
+          onClose={closeQuoteModal}
+          maxW="max-w-4xl"
+        >
+          <form
+            onSubmit={handleQuoteSubmit}
+            className="max-h-[88vh] overflow-y-auto"
+          >
             <div className="px-6 pt-5 pb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-[#EDE8DF]">
-              {quoteError && <ErrorBanner error={quoteError} cls="sm:col-span-3" />}
+              {quoteError && (
+                <ErrorBanner error={quoteError} cls="sm:col-span-3" />
+              )}
 
               <FF label="Project *" cls="sm:col-span-1">
-                <select required value={quoteForm.project} onChange={(e) => setQuoteForm((p) => ({ ...p, project: e.target.value }))} className={inputCls}>
+                <select
+                  required
+                  value={quoteForm.project}
+                  onChange={(e) =>
+                    setQuoteForm((p) => ({ ...p, project: e.target.value }))
+                  }
+                  className={inputCls}
+                >
                   <option value="">— Select —</option>
                   {projects.map((pr: any) => (
                     <option key={pr.id} value={pr.id}>
@@ -4169,28 +4988,61 @@ export default function ClientDetails() {
               </FF>
 
               <FF label="Valid Until">
-                <input type="date" value={quoteForm.valid_until} onChange={(e) => setQuoteForm((p) => ({ ...p, valid_until: e.target.value }))} className={inputCls} />
+                <input
+                  type="date"
+                  value={quoteForm.valid_until}
+                  onChange={(e) =>
+                    setQuoteForm((p) => ({ ...p, valid_until: e.target.value }))
+                  }
+                  className={inputCls}
+                />
               </FF>
 
               <FF label="Discount Type">
-                <select value={quoteForm.discount_type} onChange={(e) => setQuoteForm((p) => ({ ...p, discount_type: e.target.value }))} className={inputCls}>
+                <select
+                  value={quoteForm.discount_type}
+                  onChange={(e) =>
+                    setQuoteForm((p) => ({
+                      ...p,
+                      discount_type: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                >
                   <option value="percentage">Percentage (%)</option>
                   <option value="fixed">Fixed Amount (₹)</option>
                 </select>
               </FF>
 
-              <FF label={`Discount Value ${quoteForm.discount_type === "percentage" ? "%" : "₹"}`}>
-                <input type="number" min="0" value={quoteForm.discount_value} onChange={(e) => setQuoteForm((p) => ({ ...p, discount_value: e.target.value }))} className={inputCls} />
+              <FF
+                label={`Discount Value ${quoteForm.discount_type === "percentage" ? "%" : "₹"}`}
+              >
+                <input
+                  type="number"
+                  min="0"
+                  value={quoteForm.discount_value}
+                  onChange={(e) =>
+                    setQuoteForm((p) => ({
+                      ...p,
+                      discount_value: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                />
               </FF>
 
               <div className="sm:col-span-2 flex flex-col justify-end gap-2">
-                <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide">Tax Mode</label>
+                <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide">
+                  Tax Mode
+                </label>
                 <div className="flex items-center gap-1 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl p-1 w-fit">
                   <button
                     type="button"
                     onClick={() => setTaxMode("cgst_sgst")}
                     className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                      taxMode === "cgst_sgst" ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]" : "text-[#6B6259]"
+                      taxMode === "cgst_sgst"
+                        ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]"
+                        : "text-[#6B6259]"
                     }`}
                   >
                     CGST + SGST
@@ -4199,7 +5051,9 @@ export default function ClientDetails() {
                     type="button"
                     onClick={() => setTaxMode("igst")}
                     className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                      taxMode === "igst" ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]" : "text-[#6B6259]"
+                      taxMode === "igst"
+                        ? "bg-white text-[#C8922A] shadow-sm border border-[#EDE8DF]"
+                        : "text-[#6B6259]"
                     }`}
                   >
                     IGST (Outstation)
@@ -4210,42 +5064,100 @@ export default function ClientDetails() {
               {taxMode === "cgst_sgst" ? (
                 <>
                   <FF label="CGST Rate (%)">
-                    <input type="number" min="0" max="28" value={quoteForm.cgst_rate} onChange={(e) => setQuoteForm((p) => ({ ...p, cgst_rate: e.target.value }))} className={inputCls} />
+                    <input
+                      type="number"
+                      min="0"
+                      max="28"
+                      value={quoteForm.cgst_rate}
+                      onChange={(e) =>
+                        setQuoteForm((p) => ({
+                          ...p,
+                          cgst_rate: e.target.value,
+                        }))
+                      }
+                      className={inputCls}
+                    />
                   </FF>
                   <FF label="SGST Rate (%)">
-                    <input type="number" min="0" max="28" value={quoteForm.sgst_rate} onChange={(e) => setQuoteForm((p) => ({ ...p, sgst_rate: e.target.value }))} className={inputCls} />
+                    <input
+                      type="number"
+                      min="0"
+                      max="28"
+                      value={quoteForm.sgst_rate}
+                      onChange={(e) =>
+                        setQuoteForm((p) => ({
+                          ...p,
+                          sgst_rate: e.target.value,
+                        }))
+                      }
+                      className={inputCls}
+                    />
                   </FF>
                 </>
               ) : (
                 <FF label="IGST Rate (%)" cls="sm:col-span-2">
-                  <input type="number" min="0" max="28" value={quoteForm.igst_rate} onChange={(e) => setQuoteForm((p) => ({ ...p, igst_rate: e.target.value }))} className={inputCls} />
+                  <input
+                    type="number"
+                    min="0"
+                    max="28"
+                    value={quoteForm.igst_rate}
+                    onChange={(e) =>
+                      setQuoteForm((p) => ({ ...p, igst_rate: e.target.value }))
+                    }
+                    className={inputCls}
+                  />
                 </FF>
               )}
 
               <FF label="Notes" cls="sm:col-span-3">
-                <input value={quoteForm.notes} onChange={(e) => setQuoteForm((p) => ({ ...p, notes: e.target.value }))} placeholder="e.g. Prices valid for 30 days..." className={inputCls} />
+                <input
+                  value={quoteForm.notes}
+                  onChange={(e) =>
+                    setQuoteForm((p) => ({ ...p, notes: e.target.value }))
+                  }
+                  placeholder="e.g. Prices valid for 30 days..."
+                  className={inputCls}
+                />
               </FF>
             </div>
 
             {/* Line Items */}
             <div className="px-6 py-5 border-b border-[#EDE8DF]">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">Line Items</h3>
-                <button type="button" onClick={addItem} className="flex items-center gap-1.5 text-[12px] font-semibold text-[#C8922A] hover:underline">
+                <h3 className="text-[12px] font-bold text-[#6B6259] uppercase tracking-widest">
+                  Line Items
+                </h3>
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="flex items-center gap-1.5 text-[12px] font-semibold text-[#C8922A] hover:underline"
+                >
                   <Plus size={13} /> Add Item
                 </button>
               </div>
 
               <div className="space-y-2">
                 {quoteItems.map((item: any, idx: number) => {
-                  const amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0);
+                  const amount =
+                    (parseFloat(item.quantity) || 0) *
+                    (parseFloat(item.rate) || 0);
                   return (
-                    <div key={item._key} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl px-3 py-2">
+                    <div
+                      key={item._key}
+                      className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl px-3 py-2"
+                    >
                       <div className="sm:col-span-1 flex items-center justify-between sm:flex-col sm:items-center sm:gap-0">
-                        <button type="button" onClick={() => moveItem(item._key, -1)} disabled={idx === 0} className="text-[#9A8F82] hover:text-[#C8922A] disabled:opacity-20">
+                        <button
+                          type="button"
+                          onClick={() => moveItem(item._key, -1)}
+                          disabled={idx === 0}
+                          className="text-[#9A8F82] hover:text-[#C8922A] disabled:opacity-20"
+                        >
                           ↑
                         </button>
-                        <span className="text-[10px] text-[#9A8F82] font-bold leading-none">{idx + 1}</span>
+                        <span className="text-[10px] text-[#9A8F82] font-bold leading-none">
+                          {idx + 1}
+                        </span>
                         <button
                           type="button"
                           onClick={() => moveItem(item._key, 1)}
@@ -4257,37 +5169,98 @@ export default function ClientDetails() {
                       </div>
 
                       <div className="sm:col-span-4">
-                        <input required value={item.description} onChange={(e) => updateItem(item._key, "description", e.target.value)} placeholder="Description" className={`${inputCls} text-[12px] py-1.5`} />
+                        <input
+                          required
+                          value={item.description}
+                          onChange={(e) =>
+                            updateItem(item._key, "description", e.target.value)
+                          }
+                          placeholder="Description"
+                          className={`${inputCls} text-[12px] py-1.5`}
+                        />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <select value={item.category} onChange={(e) => updateItem(item._key, "category", e.target.value)} className={`${inputCls} text-[12px] py-1.5`}>
-                          {["Furniture", "Civil", "Electrical", "Flooring", "Plumbing", "HVAC", "Painting", "Package", "Other"].map((c) => (
+                        <select
+                          value={item.category}
+                          onChange={(e) =>
+                            updateItem(item._key, "category", e.target.value)
+                          }
+                          className={`${inputCls} text-[12px] py-1.5`}
+                        >
+                          {[
+                            "Furniture",
+                            "Civil",
+                            "Electrical",
+                            "Flooring",
+                            "Plumbing",
+                            "HVAC",
+                            "Painting",
+                            "Package",
+                            "Other",
+                          ].map((c) => (
                             <option key={c}>{c}</option>
                           ))}
                         </select>
                       </div>
 
                       <div className="sm:col-span-1">
-                        <input type="number" min="0" value={item.quantity} onChange={(e) => updateItem(item._key, "quantity", e.target.value)} className={`${inputCls} text-[12px] py-1.5`} />
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateItem(item._key, "quantity", e.target.value)
+                          }
+                          className={`${inputCls} text-[12px] py-1.5`}
+                        />
                       </div>
 
                       <div className="sm:col-span-1">
-                        <select value={item.unit} onChange={(e) => updateItem(item._key, "unit", e.target.value)} className={`${inputCls} text-[12px] py-1.5`}>
-                          {["sqft", "rft", "lot", "nos", "unit", "kg", "set"].map((u) => (
+                        <select
+                          value={item.unit}
+                          onChange={(e) =>
+                            updateItem(item._key, "unit", e.target.value)
+                          }
+                          className={`${inputCls} text-[12px] py-1.5`}
+                        >
+                          {[
+                            "sqft",
+                            "rft",
+                            "lot",
+                            "nos",
+                            "unit",
+                            "kg",
+                            "set",
+                          ].map((u) => (
                             <option key={u}>{u}</option>
                           ))}
                         </select>
                       </div>
 
                       <div className="sm:col-span-2">
-                        <input type="number" min="0" value={item.rate} onChange={(e) => updateItem(item._key, "rate", e.target.value)} placeholder="0" className={`${inputCls} text-[12px] py-1.5`} />
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.rate}
+                          onChange={(e) =>
+                            updateItem(item._key, "rate", e.target.value)
+                          }
+                          placeholder="0"
+                          className={`${inputCls} text-[12px] py-1.5`}
+                        />
                       </div>
 
                       <div className="sm:col-span-1 flex items-center justify-end gap-1">
-                        <span className="text-[12px] font-bold text-[#1C1C1C]">₹{fmt(amount)}</span>
+                        <span className="text-[12px] font-bold text-[#1C1C1C]">
+                          ₹{fmt(amount)}
+                        </span>
                         {quoteItems.length > 1 && (
-                          <button type="button" onClick={() => removeItem(item._key)} className="text-red-400 hover:text-red-600 ml-1">
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item._key)}
+                            className="text-red-400 hover:text-red-600 ml-1"
+                          >
                             <X size={13} />
                           </button>
                         )}
@@ -4303,15 +5276,21 @@ export default function ClientDetails() {
               <div className="space-y-1 text-[12px] w-full sm:min-w-[240px] sm:w-auto">
                 <div className="flex justify-between text-[#6B6259]">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-[#1C1C1C]">₹{fmt(totals.subtotal)}</span>
+                  <span className="font-semibold text-[#1C1C1C]">
+                    ₹{fmt(totals.subtotal)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[#6B6259]">
                   <span>Discount</span>
-                  <span className="font-semibold text-red-500">-₹{fmt(totals.discAmt)}</span>
+                  <span className="font-semibold text-red-500">
+                    -₹{fmt(totals.discAmt)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[#6B6259]">
                   <span>Taxable</span>
-                  <span className="font-semibold text-[#1C1C1C]">₹{fmt(totals.taxable)}</span>
+                  <span className="font-semibold text-[#1C1C1C]">
+                    ₹{fmt(totals.taxable)}
+                  </span>
                 </div>
                 {taxMode === "cgst_sgst" ? (
                   <>
@@ -4336,7 +5315,11 @@ export default function ClientDetails() {
                 </div>
               </div>
 
-              <MFooter onCancel={closeQuoteModal} isSubmitting={quoteSubmitting} label={editingQuoteId ? "Update Quotation" : "Save Quotation"} />
+              <MFooter
+                onCancel={closeQuoteModal}
+                isSubmitting={quoteSubmitting}
+                label={editingQuoteId ? "Update Quotation" : "Save Quotation"}
+              />
             </div>
           </form>
         </Modal>
@@ -4344,54 +5327,107 @@ export default function ClientDetails() {
 
       {/* INVOICE MODAL */}
       {isInvoiceModalOpen && (
-        <Modal title="Generate Invoice" onClose={closeInvoiceModal} maxW="max-w-lg">
-          <form onSubmit={handleInvoiceSubmit} className="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+        <Modal
+          title="Generate Invoice"
+          onClose={closeInvoiceModal}
+          maxW="max-w-lg"
+        >
+          <form
+            onSubmit={handleInvoiceSubmit}
+            className="p-6 space-y-4 max-h-[85vh] overflow-y-auto"
+          >
             {invoiceError && <ErrorBanner error={invoiceError} />}
             <div>
-              <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide block mb-2">Invoice Type</label>
+              <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide block mb-2">
+                Invoice Type
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
-                  { value: "full", label: "Full (100%)", desc: "Complete invoice for full amount" },
-                  { value: "advance", label: "Advance", desc: "Advance payment on booking" },
-                  { value: "milestone", label: "Milestone", desc: "Partial milestone payment" },
-                  { value: "final", label: "Final", desc: "Final invoice on handover" },
+                  {
+                    value: "full",
+                    label: "Full (100%)",
+                    desc: "Complete invoice for full amount",
+                  },
+                  {
+                    value: "advance",
+                    label: "Advance",
+                    desc: "Advance payment on booking",
+                  },
+                  {
+                    value: "milestone",
+                    label: "Milestone",
+                    desc: "Partial milestone payment",
+                  },
+                  {
+                    value: "final",
+                    label: "Final",
+                    desc: "Final invoice on handover",
+                  },
                 ].map((t) => (
                   <button
                     key={t.value}
                     type="button"
                     onClick={() => handleInvoiceTypeChange(t.value)}
                     className={`text-left p-3 rounded-xl border-2 transition-all ${
-                      invoiceForm.invoice_type === t.value ? "border-[#C8922A] bg-[#FDF3E3]" : "border-[#EDE8DF] bg-white hover:border-[#C8922A]/40"
+                      invoiceForm.invoice_type === t.value
+                        ? "border-[#C8922A] bg-[#FDF3E3]"
+                        : "border-[#EDE8DF] bg-white hover:border-[#C8922A]/40"
                     }`}
                   >
-                    <p className={`text-[12px] font-bold ${invoiceForm.invoice_type === t.value ? "text-[#C8922A]" : "text-[#1C1C1C]"}`}>{t.label}</p>
-                    <p className="text-[10px] text-[#9A8F82] mt-0.5">{t.desc}</p>
+                    <p
+                      className={`text-[12px] font-bold ${invoiceForm.invoice_type === t.value ? "text-[#C8922A]" : "text-[#1C1C1C]"}`}
+                    >
+                      {t.label}
+                    </p>
+                    <p className="text-[10px] text-[#9A8F82] mt-0.5">
+                      {t.desc}
+                    </p>
                   </button>
                 ))}
               </div>
             </div>
 
             <FF label="Quotation (Approved) *">
-              <select required value={invoiceForm.quotation_id} onChange={(e) => setInvoiceForm((p: any) => ({ ...p, quotation_id: e.target.value }))} className={inputCls}>
+              <select
+                required
+                value={invoiceForm.quotation_id}
+                onChange={(e) =>
+                  setInvoiceForm((p: any) => ({
+                    ...p,
+                    quotation_id: e.target.value,
+                  }))
+                }
+                className={inputCls}
+              >
                 <option value="">— Select Quotation —</option>
                 {quotations.map((q: any) => (
                   <option key={q.id} value={q.id}>
-                    #{q.quote_number} v{q.version} — {q.project_name} (₹{fmt(q.grand_total)}) [{q.status}]
+                    #{q.quote_number} v{q.version} — {q.project_name} (₹
+                    {fmt(q.grand_total)}) [{q.status}]
                   </option>
                 ))}
               </select>
-              {quotations.filter((q: any) => q.status === "approved").length === 0 && (
+              {quotations.filter((q: any) => q.status === "approved").length ===
+                0 && (
                 <p className="text-[11px] text-amber-600 mt-1 flex items-center gap-1">
-                  <AlertCircle size={11} /> No approved quotations found. Approve a quotation first.
+                  <AlertCircle size={11} /> No approved quotations found.
+                  Approve a quotation first.
                 </p>
               )}
             </FF>
 
             {invoiceForm.invoice_type !== "full" && (
-              <FF label={`Milestone Label ${invoiceForm.invoice_type === "milestone" ? "*" : ""}`}>
+              <FF
+                label={`Milestone Label ${invoiceForm.invoice_type === "milestone" ? "*" : ""}`}
+              >
                 <input
                   value={invoiceForm.milestone_label}
-                  onChange={(e) => setInvoiceForm((p: any) => ({ ...p, milestone_label: e.target.value }))}
+                  onChange={(e) =>
+                    setInvoiceForm((p: any) => ({
+                      ...p,
+                      milestone_label: e.target.value,
+                    }))
+                  }
                   placeholder={
                     invoiceForm.invoice_type === "advance"
                       ? "Advance on Booking"
@@ -4411,28 +5447,68 @@ export default function ClientDetails() {
                   min="1"
                   max="100"
                   value={invoiceForm.milestone_percentage}
-                  onChange={(e) => setInvoiceForm((p: any) => ({ ...p, milestone_percentage: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setInvoiceForm((p: any) => ({
+                      ...p,
+                      milestone_percentage: Number(e.target.value),
+                    }))
+                  }
                   className={inputCls}
                 />
-                <p className="text-[11px] text-[#9A8F82] mt-1">This % of quotation grand total will be invoiced.</p>
+                <p className="text-[11px] text-[#9A8F82] mt-1">
+                  This % of quotation grand total will be invoiced.
+                </p>
               </FF>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FF label="Invoice Date *">
-                <input type="date" required value={invoiceForm.invoice_date} onChange={(e) => setInvoiceForm((p: any) => ({ ...p, invoice_date: e.target.value }))} className={inputCls} />
+                <input
+                  type="date"
+                  required
+                  value={invoiceForm.invoice_date}
+                  onChange={(e) =>
+                    setInvoiceForm((p: any) => ({
+                      ...p,
+                      invoice_date: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                />
               </FF>
               <FF label="Due In (Days)">
-                <input type="number" min="0" value={invoiceForm.due_days} onChange={(e) => setInvoiceForm((p: any) => ({ ...p, due_days: Number(e.target.value) }))} className={inputCls} />
+                <input
+                  type="number"
+                  min="0"
+                  value={invoiceForm.due_days}
+                  onChange={(e) =>
+                    setInvoiceForm((p: any) => ({
+                      ...p,
+                      due_days: Number(e.target.value),
+                    }))
+                  }
+                  className={inputCls}
+                />
               </FF>
             </div>
 
             <FF label="Notes">
-              <input value={invoiceForm.notes} onChange={(e) => setInvoiceForm((p: any) => ({ ...p, notes: e.target.value }))} placeholder="e.g. Please pay within 15 days." className={inputCls} />
+              <input
+                value={invoiceForm.notes}
+                onChange={(e) =>
+                  setInvoiceForm((p: any) => ({ ...p, notes: e.target.value }))
+                }
+                placeholder="e.g. Please pay within 15 days."
+                className={inputCls}
+              />
             </FF>
 
             <div className="pt-4 border-t border-[#F5F2ED]">
-              <MFooter onCancel={closeInvoiceModal} isSubmitting={invoiceSubmitting} label="Generate Invoice" />
+              <MFooter
+                onCancel={closeInvoiceModal}
+                isSubmitting={invoiceSubmitting}
+                label="Generate Invoice"
+              />
             </div>
           </form>
         </Modal>
@@ -4440,20 +5516,55 @@ export default function ClientDetails() {
 
       {/* INVOICE EDIT MODAL */}
       {isInvoiceEditOpen && viewingInvoice && (
-        <Modal title="Edit Invoice" onClose={() => setIsInvoiceEditOpen(false)} maxW="max-w-lg">
+        <Modal
+          title="Edit Invoice"
+          onClose={() => setIsInvoiceEditOpen(false)}
+          maxW="max-w-lg"
+        >
           <form onSubmit={submitInvoiceEdit} className="p-6 space-y-4">
             <FF label="Invoice Date">
-              <input type="date" value={invoiceEditForm.invoice_date} onChange={(e) => setInvoiceEditForm((p) => ({ ...p, invoice_date: e.target.value }))} className={inputCls} />
+              <input
+                type="date"
+                value={invoiceEditForm.invoice_date}
+                onChange={(e) =>
+                  setInvoiceEditForm((p) => ({
+                    ...p,
+                    invoice_date: e.target.value,
+                  }))
+                }
+                className={inputCls}
+              />
             </FF>
             <FF label="Due Date">
-              <input type="date" value={invoiceEditForm.due_date} onChange={(e) => setInvoiceEditForm((p) => ({ ...p, due_date: e.target.value }))} className={inputCls} />
+              <input
+                type="date"
+                value={invoiceEditForm.due_date}
+                onChange={(e) =>
+                  setInvoiceEditForm((p) => ({
+                    ...p,
+                    due_date: e.target.value,
+                  }))
+                }
+                className={inputCls}
+              />
             </FF>
             <FF label="Notes">
-              <textarea rows={4} value={invoiceEditForm.notes} onChange={(e) => setInvoiceEditForm((p) => ({ ...p, notes: e.target.value }))} className={`${inputCls} resize-none`} />
+              <textarea
+                rows={4}
+                value={invoiceEditForm.notes}
+                onChange={(e) =>
+                  setInvoiceEditForm((p) => ({ ...p, notes: e.target.value }))
+                }
+                className={`${inputCls} resize-none`}
+              />
             </FF>
 
             <div className="pt-2 border-t border-[#F5F2ED]">
-              <MFooter onCancel={() => setIsInvoiceEditOpen(false)} isSubmitting={invoiceEditSubmitting} label="Update Invoice" />
+              <MFooter
+                onCancel={() => setIsInvoiceEditOpen(false)}
+                isSubmitting={invoiceEditSubmitting}
+                label="Update Invoice"
+              />
             </div>
           </form>
         </Modal>
@@ -4469,10 +5580,15 @@ export default function ClientDetails() {
 function Modal({ title, onClose, children, maxW = "max-w-2xl" }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className={`bg-white rounded-2xl w-full ${maxW} shadow-2xl overflow-hidden`}>
+      <div
+        className={`bg-white rounded-2xl w-full ${maxW} shadow-2xl overflow-hidden`}
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#EDE8DF] bg-[#FAF8F5]">
           <h2 className="text-[15px] font-bold text-[#1C1C1C]">{title}</h2>
-          <button onClick={onClose} className="text-[#9A8F82] hover:text-red-500 transition-colors">
+          <button
+            onClick={onClose}
+            className="text-[#9A8F82] hover:text-red-500 transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
@@ -4485,7 +5601,9 @@ function Modal({ title, onClose, children, maxW = "max-w-2xl" }: any) {
 function FF({ label, children, cls = "" }: any) {
   return (
     <div className={`space-y-1.5 ${cls}`}>
-      <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide">{label}</label>
+      <label className="text-[11px] font-bold text-[#6B6259] uppercase tracking-wide">
+        {label}
+      </label>
       {children}
     </div>
   );
@@ -4493,7 +5611,9 @@ function FF({ label, children, cls = "" }: any) {
 
 function ErrorBanner({ error, cls = "" }: any) {
   return (
-    <div className={`bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-2 text-red-600 text-[13px] ${cls}`}>
+    <div
+      className={`bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-2 text-red-600 text-[13px] ${cls}`}
+    >
       <AlertCircle size={15} className="mt-0.5 shrink-0" />
       <span>{typeof error === "string" ? error : JSON.stringify(error)}</span>
     </div>
@@ -4503,7 +5623,11 @@ function ErrorBanner({ error, cls = "" }: any) {
 function MFooter({ onCancel, isSubmitting, label }: any) {
   return (
     <div className="flex justify-end gap-3">
-      <button type="button" onClick={onCancel} className="px-4 py-2 text-[13px] font-semibold text-[#6B6259] hover:text-[#1C1C1C] transition-colors">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="px-4 py-2 text-[13px] font-semibold text-[#6B6259] hover:text-[#1C1C1C] transition-colors"
+      >
         Cancel
       </button>
       <button

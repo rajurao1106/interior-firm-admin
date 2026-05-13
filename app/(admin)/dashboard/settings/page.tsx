@@ -447,15 +447,22 @@
 
 import { useState, useEffect } from "react";
 import {
-  Save, Plus, Trash2, AlertCircle, Loader2,
-  Edit3, X, Search, Package
+  Save,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Loader2,
+  Edit3,
+  X,
+  Search,
+  Package,
 } from "lucide-react";
 import {
   getAllSettings,
   saveSettings,
   type GSTData,
   type Milestone,
-} from "@/services/settingsService";
+} from "@/backup/services/settingsService";
 import { setGstEnabledLocal } from "@/lib/gstToggle";
 
 type BankData = Record<string, any>;
@@ -473,10 +480,13 @@ interface LineItem {
   is_active: boolean;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://interior-firm-crm-be.onrender.com/api/v1";
 
 function getAuthHeaders(): HeadersInit {
-  if (typeof window === "undefined") return { "Content-Type": "application/json" };
+  if (typeof window === "undefined")
+    return { "Content-Type": "application/json" };
   const token =
     localStorage.getItem("access") ||
     localStorage.getItem("access_token") ||
@@ -490,7 +500,7 @@ function getAuthHeaders(): HeadersInit {
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 const tabs = [
   "GST Configuration",
-  "Items & Services",     // ← NEW
+  "Items & Services", // ← NEW
   "Milestones",
   "Branding",
   "Bank Details",
@@ -717,7 +727,7 @@ function LineItemsSection() {
       (filterCat === "All" || i.category === filterCat) &&
       (i.name.toLowerCase().includes(search.toLowerCase()) ||
         i.category.toLowerCase().includes(search.toLowerCase()) ||
-        i.description.toLowerCase().includes(search.toLowerCase()))
+        i.description.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -737,7 +747,8 @@ function LineItemsSection() {
             Items & Services Library
           </h2>
           <p className="text-[12px] text-[#9A8F82] mt-0.5">
-            Add services & materials here — they appear as a dropdown in quotations
+            Add services & materials here — they appear as a dropdown in
+            quotations
           </p>
         </div>
         <button
@@ -945,10 +956,7 @@ function LineItemsSection() {
       {/* List */}
       {loading ? (
         <div className="py-10 text-center">
-          <Loader2
-            className="animate-spin inline text-[#C8922A]"
-            size={24}
-          />
+          <Loader2 className="animate-spin inline text-[#C8922A]" size={24} />
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-14 text-center text-[#9A8F82]">
@@ -1004,12 +1012,9 @@ function LineItemsSection() {
                     {/* Rate */}
                     <div className="text-right flex-shrink-0">
                       <p className="text-[13px] font-bold text-[#1C1C1C]">
-                        ₹
-                        {parseFloat(item.default_rate).toLocaleString("en-IN")}
+                        ₹{parseFloat(item.default_rate).toLocaleString("en-IN")}
                       </p>
-                      <p className="text-[11px] text-[#9A8F82]">
-                        /{item.unit}
-                      </p>
+                      <p className="text-[11px] text-[#9A8F82]">/{item.unit}</p>
                     </div>
 
                     {/* Actions */}
@@ -1100,7 +1105,7 @@ export default function SettingsPage() {
 
   const totalPercentage = milestones.reduce(
     (s, m) => s + (m.percentage || 0),
-    0
+    0,
   );
 
   if (loading)
@@ -1151,7 +1156,6 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1">
-
           {/* ── GST Configuration ── */}
           {activeTab === "GST Configuration" && (
             <div className="bg-white rounded-xl border border-[#EDE8DF] p-6">
@@ -1263,7 +1267,10 @@ export default function SettingsPage() {
               {/* OFF state info */}
               {!gstEnabled && (
                 <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mt-4">
-                  <AlertCircle size={18} className="text-amber-500 flex-shrink-0" />
+                  <AlertCircle
+                    size={18}
+                    className="text-amber-500 flex-shrink-0"
+                  />
                   <p className="text-[13px] text-amber-700">
                     GST is disabled. Quotations and invoices will not show any
                     tax fields. Toggle ON above to configure GST.
@@ -1297,9 +1304,7 @@ export default function SettingsPage() {
                 </div>
                 <div
                   className={`text-[13px] font-semibold flex items-center gap-1.5 ${
-                    totalPercentage === 100
-                      ? "text-green-600"
-                      : "text-red-500"
+                    totalPercentage === 100 ? "text-green-600" : "text-red-500"
                   }`}
                 >
                   <AlertCircle size={14} /> Total: {totalPercentage}%{" "}
@@ -1500,7 +1505,7 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-5">
                 {Object.keys(bankData)
                   .filter(
-                    (key) => !["id", "updated_at", "upi_qr_code"].includes(key)
+                    (key) => !["id", "updated_at", "upi_qr_code"].includes(key),
                   )
                   .map((key) => (
                     <div key={key}>

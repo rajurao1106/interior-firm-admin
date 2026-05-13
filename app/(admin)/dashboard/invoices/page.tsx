@@ -3,10 +3,25 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Loader2, X, Printer, FileSpreadsheet, Mail, MessageCircle,
-  Trash2, Send, Banknote, Eye, Search, AlertCircle,
-  IndianRupee, BadgeCheck, Clock, FileStack,
-  Bell, ChevronDown,
+  Plus,
+  Loader2,
+  X,
+  Printer,
+  FileSpreadsheet,
+  Mail,
+  MessageCircle,
+  Trash2,
+  Send,
+  Banknote,
+  Eye,
+  Search,
+  AlertCircle,
+  IndianRupee,
+  BadgeCheck,
+  Clock,
+  FileStack,
+  Bell,
+  ChevronDown,
 } from "lucide-react";
 import {
   getAllInvoices,
@@ -19,7 +34,7 @@ import {
   sendInvoiceWhatsApp,
   getInvoiceById,
   type Invoice,
-} from "@/services/invoiceService";
+} from "@/backup/services/invoiceService";
 import RecordPaymentModal from "@/components/RecordPaymentModal";
 import PaymentHistoryPanel from "@/components/PaymentHistoryModal";
 
@@ -34,25 +49,33 @@ function getToken(): string | null {
 }
 
 // ─── Status / Type config ─────────────────────────────────────────────────────
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  draft:          { label: "Draft",     color: "#6B7280", bg: "#F3F4F6" },
-  issued:         { label: "Issued",    color: "#3B82F6", bg: "#EFF6FF" },
-  partial:        { label: "Partial",   color: "#F59E0B", bg: "#FFFBEB" },
-  partially_paid: { label: "Partial",   color: "#F59E0B", bg: "#FFFBEB" },
-  paid:           { label: "Paid",      color: "#10B981", bg: "#ECFDF5" },
-  overdue:        { label: "Overdue",   color: "#EF4444", bg: "#FEF2F2" },
-  cancelled:      { label: "Cancelled", color: "#9CA3AF", bg: "#F9FAFB" },
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
+  draft: { label: "Draft", color: "#6B7280", bg: "#F3F4F6" },
+  issued: { label: "Issued", color: "#3B82F6", bg: "#EFF6FF" },
+  partial: { label: "Partial", color: "#F59E0B", bg: "#FFFBEB" },
+  partially_paid: { label: "Partial", color: "#F59E0B", bg: "#FFFBEB" },
+  paid: { label: "Paid", color: "#10B981", bg: "#ECFDF5" },
+  overdue: { label: "Overdue", color: "#EF4444", bg: "#FEF2F2" },
+  cancelled: { label: "Cancelled", color: "#9CA3AF", bg: "#F9FAFB" },
 };
 
-const typeConfig: Record<string, { label: string; color: string; bg: string }> = {
-  full:      { label: "Full",      color: "#6366F1", bg: "#EEF2FF" },
-  advance:   { label: "Advance",   color: "#06B6D4", bg: "#ECFEFF" },
-  milestone: { label: "Milestone", color: "#8B5CF6", bg: "#F5F3FF" },
-  final:     { label: "Final",     color: "#0D9488", bg: "#F0FDFA" },
-};
+const typeConfig: Record<string, { label: string; color: string; bg: string }> =
+  {
+    full: { label: "Full", color: "#6366F1", bg: "#EEF2FF" },
+    advance: { label: "Advance", color: "#06B6D4", bg: "#ECFEFF" },
+    milestone: { label: "Milestone", color: "#8B5CF6", bg: "#F5F3FF" },
+    final: { label: "Final", color: "#0D9488", bg: "#F0FDFA" },
+  };
 
 const fmt = (n: any) =>
-  "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  "₹" +
+  Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({
@@ -93,10 +116,12 @@ function InvoiceDetailPanel({
   onClose: () => void;
   onRefresh: () => void;
 }) {
-  const [payModalOpen, setPayModalOpen]         = useState(false);
-  const [reminderMenu, setReminderMenu]         = useState(false);
-  const [reminderLoading, setReminderLoading]   = useState(false);
-  const [reminderSuccess, setReminderSuccess]   = useState<"whatsapp" | "email" | null>(null);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [reminderMenu, setReminderMenu] = useState(false);
+  const [reminderLoading, setReminderLoading] = useState(false);
+  const [reminderSuccess, setReminderSuccess] = useState<
+    "whatsapp" | "email" | null
+  >(null);
 
   function token() {
     if (typeof window === "undefined") return "";
@@ -129,19 +154,21 @@ function InvoiceDetailPanel({
     }
   }
 
-  const canPay    = !["paid", "cancelled"].includes(inv.status);
-  const canRemind = ["overdue", "partial", "partially_paid", "issued"].includes(inv.status);
+  const canPay = !["paid", "cancelled"].includes(inv.status);
+  const canRemind = ["overdue", "partial", "partially_paid", "issued"].includes(
+    inv.status,
+  );
   const isOverdue = inv.status === "overdue";
 
   const invoiceForModal = {
-    id:             inv.id,
+    id: inv.id,
     invoice_number: inv.invoice_number,
-    client_name:    inv.client_name,
-    project_name:   inv.project_name,
-    grand_total:    inv.grand_total,
-    amount_paid:    inv.amount_paid,
-    balance_due:    inv.balance_due,
-    status:         inv.status,
+    client_name: inv.client_name,
+    project_name: inv.project_name,
+    grand_total: inv.grand_total,
+    amount_paid: inv.amount_paid,
+    balance_due: inv.balance_due,
+    status: inv.status,
   };
 
   return (
@@ -169,7 +196,8 @@ function InvoiceDetailPanel({
             <div className="relative">
               {reminderSuccess ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ECFDF5] border border-[#6EE7B7] text-[#10B981] text-[12px] font-semibold rounded-lg">
-                  ✓ {reminderSuccess === "whatsapp" ? "WhatsApp" : "Email"} sent!
+                  ✓ {reminderSuccess === "whatsapp" ? "WhatsApp" : "Email"}{" "}
+                  sent!
                 </div>
               ) : (
                 <>
@@ -199,8 +227,12 @@ function InvoiceDetailPanel({
                       >
                         <MessageCircle size={14} className="text-[#25D366]" />
                         <div>
-                          <p className="text-[12px] font-semibold text-[#1C1C1C]">WhatsApp</p>
-                          <p className="text-[10px] text-[#9A8F82]">WA Business API</p>
+                          <p className="text-[12px] font-semibold text-[#1C1C1C]">
+                            WhatsApp
+                          </p>
+                          <p className="text-[10px] text-[#9A8F82]">
+                            WA Business API
+                          </p>
                         </div>
                       </button>
                       <div className="border-t border-[#EDE8DF]" />
@@ -210,8 +242,12 @@ function InvoiceDetailPanel({
                       >
                         <Mail size={14} className="text-[#6B6259]" />
                         <div>
-                          <p className="text-[12px] font-semibold text-[#1C1C1C]">Email</p>
-                          <p className="text-[10px] text-[#9A8F82]">Gmail SMTP</p>
+                          <p className="text-[12px] font-semibold text-[#1C1C1C]">
+                            Email
+                          </p>
+                          <p className="text-[10px] text-[#9A8F82]">
+                            Gmail SMTP
+                          </p>
                         </div>
                       </button>
                     </div>
@@ -292,7 +328,9 @@ function InvoiceDetailPanel({
                     })
                   : "—",
               ],
-              ...(inv.milestone_label ? [["Milestone", inv.milestone_label]] : []),
+              ...(inv.milestone_label
+                ? [["Milestone", inv.milestone_label]]
+                : []),
               ...(parseFloat(inv.milestone_percentage) > 0
                 ? [["Milestone %", `${inv.milestone_percentage}%`]]
                 : []),
@@ -313,25 +351,31 @@ function InvoiceDetailPanel({
             <table className="w-full text-left text-[12px]">
               <thead>
                 <tr className="border-b border-[#EDE8DF]">
-                  {["#", "Description", "Qty", "Unit", "Rate", "Amount"].map((h) => (
-                    <th
-                      key={h}
-                      className="pb-2 pr-4 text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider whitespace-nowrap"
-                    >
-                      {h}
-                    </th>
-                  ))}
+                  {["#", "Description", "Qty", "Unit", "Rate", "Amount"].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="pb-2 pr-4 text-[10px] font-bold text-[#9A8F82] uppercase tracking-wider whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F5F2ED]">
                 {inv.items.map((it: any, n: number) => (
                   <tr key={it.id || n}>
                     <td className="py-2 pr-4 text-[#9A8F82]">{n + 1}</td>
-                    <td className="py-2 pr-4 font-medium text-[#1C1C1C]">{it.description}</td>
+                    <td className="py-2 pr-4 font-medium text-[#1C1C1C]">
+                      {it.description}
+                    </td>
                     <td className="py-2 pr-4 text-[#1C1C1C]">{it.quantity}</td>
                     <td className="py-2 pr-4 text-[#6B6259]">{it.unit}</td>
                     <td className="py-2 pr-4 text-[#1C1C1C]">{fmt(it.rate)}</td>
-                    <td className="py-2 font-bold text-[#1C1C1C]">{fmt(it.amount)}</td>
+                    <td className="py-2 font-bold text-[#1C1C1C]">
+                      {fmt(it.amount)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -347,7 +391,10 @@ function InvoiceDetailPanel({
               parseFloat(inv.cgst_amount) > 0 && ["CGST", fmt(inv.cgst_amount)],
               parseFloat(inv.sgst_amount) > 0 && ["SGST", fmt(inv.sgst_amount)],
               parseFloat(inv.igst_amount) > 0 && ["IGST", fmt(inv.igst_amount)],
-              parseFloat(inv.total_tax) > 0 && ["Total Tax", fmt(inv.total_tax)],
+              parseFloat(inv.total_tax) > 0 && [
+                "Total Tax",
+                fmt(inv.total_tax),
+              ],
             ] as any[]
           )
             .filter(Boolean)
@@ -422,12 +469,15 @@ function InvoiceDetailPanel({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function InvoicesPage() {
   const router = useRouter();
-  const [invoices, setInvoices]           = useState<Invoice[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [search, setSearch]               = useState("");
-  const [statusFilter, setStatusFilter]   = useState("");
-  const [toast, setToast]                 = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
-  const [actionId, setActionId]           = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -435,7 +485,10 @@ export default function InvoicesPage() {
     setToast({ message, type });
 
   useEffect(() => {
-    if (!getToken()) { window.location.href = "/login"; return; }
+    if (!getToken()) {
+      window.location.href = "/login";
+      return;
+    }
     fetchInvoices();
   }, []);
 
@@ -446,7 +499,9 @@ export default function InvoicesPage() {
       setInvoices(data);
     } catch (err: any) {
       if (err.message?.includes("401")) {
-        ["access", "access_token", "token"].forEach((k) => localStorage.removeItem(k));
+        ["access", "access_token", "token"].forEach((k) =>
+          localStorage.removeItem(k),
+        );
         window.location.href = "/login";
       } else {
         showToast("Failed to load invoices", "error");
@@ -476,8 +531,11 @@ export default function InvoicesPage() {
       showToast("Marked as Issued!", "success");
       fetchInvoices();
       if (viewingInvoice?.id === id) openDetail(id);
-    } catch { showToast("Failed", "error"); }
-    finally { setActionId(null); }
+    } catch {
+      showToast("Failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleMarkPaid = async (id: string) => {
@@ -488,8 +546,11 @@ export default function InvoicesPage() {
       showToast("Marked as Paid!", "success");
       fetchInvoices();
       if (viewingInvoice?.id === id) openDetail(id);
-    } catch { showToast("Failed", "error"); }
-    finally { setActionId(null); }
+    } catch {
+      showToast("Failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -499,7 +560,9 @@ export default function InvoicesPage() {
       showToast("Deleted", "info");
       if (viewingInvoice?.id === id) setViewingInvoice(null);
       fetchInvoices();
-    } catch { showToast("Delete failed", "error"); }
+    } catch {
+      showToast("Delete failed", "error");
+    }
   };
 
   const handlePDF = async (id: string, num: string) => {
@@ -507,8 +570,11 @@ export default function InvoicesPage() {
     try {
       await downloadInvoicePDF(id, num);
       showToast("PDF downloaded!", "success");
-    } catch (err: any) { showToast(err.message || "PDF failed", "error"); }
-    finally { setActionId(null); }
+    } catch (err: any) {
+      showToast(err.message || "PDF failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleCSV = async (id: string) => {
@@ -517,8 +583,11 @@ export default function InvoicesPage() {
       const inv = await getInvoiceById(id);
       downloadInvoiceCSV(inv);
       showToast("CSV downloaded!", "success");
-    } catch { showToast("CSV failed", "error"); }
-    finally { setActionId(null); }
+    } catch {
+      showToast("CSV failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleEmail = async (id: string) => {
@@ -526,8 +595,11 @@ export default function InvoicesPage() {
     try {
       await sendInvoiceEmail(id);
       showToast("Email sent!", "success");
-    } catch { showToast("Email failed", "error"); }
-    finally { setActionId(null); }
+    } catch {
+      showToast("Email failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleWhatsApp = async (id: string) => {
@@ -535,8 +607,11 @@ export default function InvoicesPage() {
     try {
       await sendInvoiceWhatsApp(id);
       showToast("WhatsApp sent!", "success");
-    } catch { showToast("WhatsApp failed", "error"); }
-    finally { setActionId(null); }
+    } catch {
+      showToast("WhatsApp failed", "error");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleRowClick = (inv: Invoice) => {
@@ -546,9 +621,18 @@ export default function InvoicesPage() {
   };
 
   const stats = {
-    total:   invoices.reduce((s, i) => s + parseFloat(i.grand_total || "0"), 0),
-    paid:    invoices.filter((i) => i.status === "paid").reduce((s, i) => s + parseFloat(i.grand_total || "0"), 0),
-    pending: invoices.filter((i) => ["draft", "issued", "partial", "partially_paid"].includes(i.status)).reduce((s, i) => s + parseFloat(i.balance_due || i.grand_total || "0"), 0),
+    total: invoices.reduce((s, i) => s + parseFloat(i.grand_total || "0"), 0),
+    paid: invoices
+      .filter((i) => i.status === "paid")
+      .reduce((s, i) => s + parseFloat(i.grand_total || "0"), 0),
+    pending: invoices
+      .filter((i) =>
+        ["draft", "issued", "partial", "partially_paid"].includes(i.status),
+      )
+      .reduce(
+        (s, i) => s + parseFloat(i.balance_due || i.grand_total || "0"),
+        0,
+      ),
     overdue: invoices.filter((i) => i.status === "overdue").length,
   };
 
@@ -566,7 +650,11 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 min-h-screen bg-[#FCFBF9]">
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
 
       {/* Header */}
@@ -588,15 +676,50 @@ export default function InvoicesPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Invoiced",   value: fmt(stats.total),   icon: <IndianRupee size={14} />, color: "text-[#C8922A]",    bg: "bg-[#FDF3E3]" },
-          { label: "Amount Received",  value: fmt(stats.paid),    icon: <BadgeCheck size={14} />,  color: "text-green-600",    bg: "bg-green-50"  },
-          { label: "Balance Pending",  value: fmt(stats.pending), icon: <Clock size={14} />,       color: "text-amber-600",    bg: "bg-amber-50"  },
-          { label: "Overdue Count",    value: String(stats.overdue), icon: <AlertCircle size={14} />, color: "text-red-500",   bg: "bg-red-50"    },
+          {
+            label: "Total Invoiced",
+            value: fmt(stats.total),
+            icon: <IndianRupee size={14} />,
+            color: "text-[#C8922A]",
+            bg: "bg-[#FDF3E3]",
+          },
+          {
+            label: "Amount Received",
+            value: fmt(stats.paid),
+            icon: <BadgeCheck size={14} />,
+            color: "text-green-600",
+            bg: "bg-green-50",
+          },
+          {
+            label: "Balance Pending",
+            value: fmt(stats.pending),
+            icon: <Clock size={14} />,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+          {
+            label: "Overdue Count",
+            value: String(stats.overdue),
+            icon: <AlertCircle size={14} />,
+            color: "text-red-500",
+            bg: "bg-red-50",
+          },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-[#EDE8DF] rounded-xl p-4 shadow-sm">
-            <div className={`inline-flex p-2 ${s.bg} rounded-lg ${s.color} mb-2`}>{s.icon}</div>
-            <p className="text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider">{s.label}</p>
-            <p className={`text-[16px] font-bold ${s.color} mt-0.5`}>{s.value}</p>
+          <div
+            key={s.label}
+            className="bg-white border border-[#EDE8DF] rounded-xl p-4 shadow-sm"
+          >
+            <div
+              className={`inline-flex p-2 ${s.bg} rounded-lg ${s.color} mb-2`}
+            >
+              {s.icon}
+            </div>
+            <p className="text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider">
+              {s.label}
+            </p>
+            <p className={`text-[16px] font-bold ${s.color} mt-0.5`}>
+              {s.value}
+            </p>
           </div>
         ))}
       </div>
@@ -604,7 +727,10 @@ export default function InvoicesPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <div className="relative max-w-xs flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F82]" />
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F82]"
+          />
           <input
             placeholder="Search invoices..."
             value={search}
@@ -619,7 +745,9 @@ export default function InvoicesPage() {
         >
           <option value="">All Status</option>
           {Object.entries(statusConfig).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
+            <option key={k} value={k}>
+              {v.label}
+            </option>
           ))}
         </select>
       </div>
@@ -629,23 +757,33 @@ export default function InvoicesPage() {
         <table className="w-full text-left">
           <thead className="bg-[#FAF8F5] border-b border-[#EDE8DF]">
             <tr>
-              {["Invoice #", "Client / Project", "Type", "Date", "Due Date", "Grand Total", "Status", "Actions"].map(
-                (h, i) => (
-                  <th
-                    key={h}
-                    className={`px-4 py-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider ${i >= 5 ? "text-right" : ""}`}
-                  >
-                    {h}
-                  </th>
-                )
-              )}
+              {[
+                "Invoice #",
+                "Client / Project",
+                "Type",
+                "Date",
+                "Due Date",
+                "Grand Total",
+                "Status",
+                "Actions",
+              ].map((h, i) => (
+                <th
+                  key={h}
+                  className={`px-4 py-4 text-[11px] font-bold text-[#9A8F82] uppercase tracking-wider ${i >= 5 ? "text-right" : ""}`}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F5F2ED]">
             {loading ? (
               <tr>
                 <td colSpan={8} className="py-20 text-center">
-                  <Loader2 className="animate-spin inline text-[#C8922A]" size={24} />
+                  <Loader2
+                    className="animate-spin inline text-[#C8922A]"
+                    size={24}
+                  />
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
@@ -653,8 +791,12 @@ export default function InvoicesPage() {
                 <td colSpan={8} className="py-20 text-center">
                   <div className="flex flex-col items-center gap-2">
                     <FileStack size={28} className="text-[#C8C0B5]" />
-                    <p className="text-[#9A8F82] text-[13px] font-medium">No invoices found.</p>
-                    <p className="text-[#9A8F82] text-[12px]">Generate one from an approved quotation.</p>
+                    <p className="text-[#9A8F82] text-[13px] font-medium">
+                      No invoices found.
+                    </p>
+                    <p className="text-[#9A8F82] text-[12px]">
+                      Generate one from an approved quotation.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -663,7 +805,10 @@ export default function InvoicesPage() {
                 const st = statusConfig[inv.status] || statusConfig.draft;
                 const tt = typeConfig[inv.invoice_type] || typeConfig.full;
                 return (
-                  <tr key={inv.id} className="hover:bg-[#FAF8F5] transition-colors">
+                  <tr
+                    key={inv.id}
+                    className="hover:bg-[#FAF8F5] transition-colors"
+                  >
                     <td className="px-4 py-4">
                       <button
                         onClick={() => openDetail(inv.id)}
@@ -679,11 +824,16 @@ export default function InvoicesPage() {
                       </button>
                     </td>
                     <td className="px-4 py-4">
-                      <button onClick={() => handleRowClick(inv)} className="text-left group">
+                      <button
+                        onClick={() => handleRowClick(inv)}
+                        className="text-left group"
+                      >
                         <p className="text-[13px] font-semibold text-[#1C1C1C] group-hover:text-[#C8922A] transition-colors">
                           {inv.client_name}
                         </p>
-                        <p className="text-[11px] text-[#9A8F82]">{inv.project_name}</p>
+                        <p className="text-[11px] text-[#9A8F82]">
+                          {inv.project_name}
+                        </p>
                       </button>
                     </td>
                     <td className="px-4 py-4">
@@ -701,22 +851,32 @@ export default function InvoicesPage() {
                     </td>
                     <td className="px-4 py-4 text-[12px] text-[#6B6259]">
                       {inv.invoice_date
-                        ? new Date(inv.invoice_date).toLocaleDateString("en-IN", {
-                            day: "2-digit", month: "short", year: "numeric",
-                          })
+                        ? new Date(inv.invoice_date).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )
                         : "—"}
                     </td>
                     <td className="px-4 py-4 text-[12px] text-[#6B6259]">
                       {inv.due_date
                         ? new Date(inv.due_date).toLocaleDateString("en-IN", {
-                            day: "2-digit", month: "short", year: "numeric",
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
                           })
                         : "—"}
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <p className="text-[13px] font-bold text-[#1C1C1C]">{fmt(inv.grand_total)}</p>
+                      <p className="text-[13px] font-bold text-[#1C1C1C]">
+                        {fmt(inv.grand_total)}
+                      </p>
                       {parseFloat(inv.balance_due) > 0 &&
-                        parseFloat(inv.balance_due) !== parseFloat(inv.grand_total) && (
+                        parseFloat(inv.balance_due) !==
+                          parseFloat(inv.grand_total) && (
                           <p className="text-[10px] text-amber-600 font-medium">
                             Bal: {fmt(inv.balance_due)}
                           </p>
@@ -739,17 +899,27 @@ export default function InvoicesPage() {
                             disabled={actionId === `send_${inv.id}`}
                             className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                           >
-                            {actionId === `send_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+                            {actionId === `send_${inv.id}` ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Send size={13} />
+                            )}
                           </button>
                         )}
-                        {["issued", "partial", "partially_paid"].includes(inv.status) && (
+                        {["issued", "partial", "partially_paid"].includes(
+                          inv.status,
+                        ) && (
                           <button
                             onClick={() => handleMarkPaid(inv.id)}
                             title="Mark Paid"
                             disabled={actionId === `paid_${inv.id}`}
                             className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
                           >
-                            {actionId === `paid_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Banknote size={13} />}
+                            {actionId === `paid_${inv.id}` ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Banknote size={13} />
+                            )}
                           </button>
                         )}
                         <button
@@ -758,7 +928,11 @@ export default function InvoicesPage() {
                           disabled={actionId === `pdf_${inv.id}`}
                           className="p-1.5 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 disabled:opacity-50"
                         >
-                          {actionId === `pdf_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Printer size={13} />}
+                          {actionId === `pdf_${inv.id}` ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Printer size={13} />
+                          )}
                         </button>
                         <button
                           onClick={() => handleCSV(inv.id)}
@@ -766,7 +940,11 @@ export default function InvoicesPage() {
                           disabled={actionId === `csv_${inv.id}`}
                           className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 disabled:opacity-50"
                         >
-                          {actionId === `csv_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <FileSpreadsheet size={13} />}
+                          {actionId === `csv_${inv.id}` ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <FileSpreadsheet size={13} />
+                          )}
                         </button>
                         <button
                           onClick={() => handleEmail(inv.id)}
@@ -774,7 +952,11 @@ export default function InvoicesPage() {
                           disabled={actionId === `email_${inv.id}`}
                           className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 disabled:opacity-50"
                         >
-                          {actionId === `email_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
+                          {actionId === `email_${inv.id}` ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Mail size={13} />
+                          )}
                         </button>
                         <button
                           onClick={() => handleWhatsApp(inv.id)}
@@ -783,7 +965,11 @@ export default function InvoicesPage() {
                           className="p-1.5 rounded-md hover:bg-[#ECFDF5] disabled:opacity-50"
                           style={{ background: "#f0fdf4", color: "#16a34a" }}
                         >
-                          {actionId === `wa_${inv.id}` ? <Loader2 size={13} className="animate-spin" /> : <MessageCircle size={13} />}
+                          {actionId === `wa_${inv.id}` ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <MessageCircle size={13} />
+                          )}
                         </button>
                         <button
                           onClick={() => handleDelete(inv.id)}

@@ -238,17 +238,34 @@
 //   );
 // }
 
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, MapPin, Maximize2, Calendar, Loader2, Eye, ArrowDown, X } from "lucide-react";
+import {
+  Plus,
+  MapPin,
+  Maximize2,
+  Calendar,
+  Loader2,
+  Eye,
+  ArrowDown,
+  X,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 
-import { getProjectsByClient, getProjects, createProject, updateProject, type Project } from "@/services/projectService";
-import { getAllClients, type Client } from "@/services/clientService";
+import {
+  getProjectsByClient,
+  getProjects,
+  createProject,
+  updateProject,
+  type Project,
+} from "@/backup/services/projectService";
+import { getAllClients, type Client } from "@/backup/services/clientService";
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
   active: { label: "Active", color: "#10B981", bg: "#ECFDF5" },
   on_hold: { label: "On Hold", color: "#F59E0B", bg: "#FFFBEB" },
   completed: { label: "Completed", color: "#6B7280", bg: "#F3F4F6" },
@@ -279,7 +296,7 @@ export default function ProjectsPage() {
       status: "active",
       notes: "",
     }),
-    [routeClientId]
+    [routeClientId],
   );
 
   const [formData, setFormData] = useState<Project>(emptyForm);
@@ -300,7 +317,9 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const data = routeClientId ? await getProjectsByClient(routeClientId) : await getProjects();
+      const data = routeClientId
+        ? await getProjectsByClient(routeClientId)
+        : await getProjects();
       setProjects(Array.isArray(data) ? data : ((data as any)?.results ?? []));
     } catch (e) {
       console.error("Fetch error:", e);
@@ -355,7 +374,9 @@ export default function ProjectsPage() {
     <div className="flex min-h-screen bg-[#FBFBFB]">
       {/* SIDEBAR FILTER */}
       <div className="w-[240px] flex-shrink-0">
-        <div className="bg-[#ffe0a6] px-4 py-3 text-[13px] font-bold tracking-wider">FILTER</div>
+        <div className="bg-[#ffe0a6] px-4 py-3 text-[13px] font-bold tracking-wider">
+          FILTER
+        </div>
         <div className="p-5 space-y-8">
           <button className="flex items-center gap-2 text-[#4A90E2] text-[14px] hover:opacity-80">
             <Eye size={16} /> <span className="underline">Show counts</span>
@@ -371,7 +392,9 @@ export default function ProjectsPage() {
                   key={s}
                   onClick={() => setStatusFilter(s)}
                   className={`cursor-pointer text-[14px] capitalize ${
-                    statusFilter === s ? "font-bold underline" : "text-[#4A90E2] hover:underline"
+                    statusFilter === s
+                      ? "font-bold underline"
+                      : "text-[#4A90E2] hover:underline"
                   }`}
                 >
                   {s.replace("_", " ")}
@@ -382,20 +405,25 @@ export default function ProjectsPage() {
 
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-[14px] font-medium">
-              <ArrowDown size={14} className="text-[#4A90E2]" /> By property type
+              <ArrowDown size={14} className="text-[#4A90E2]" /> By property
+              type
             </div>
             <ul className="space-y-2 ml-4">
-              {["all", "Apartment", "Villa", "Office", "Commercial"].map((t) => (
-                <li
-                  key={t}
-                  onClick={() => setTypeFilter(t.toLowerCase())}
-                  className={`cursor-pointer text-[14px] ${
-                    typeFilter === t.toLowerCase() ? "font-bold underline" : "text-[#4A90E2] hover:underline"
-                  }`}
-                >
-                  {t}
-                </li>
-              ))}
+              {["all", "Apartment", "Villa", "Office", "Commercial"].map(
+                (t) => (
+                  <li
+                    key={t}
+                    onClick={() => setTypeFilter(t.toLowerCase())}
+                    className={`cursor-pointer text-[14px] ${
+                      typeFilter === t.toLowerCase()
+                        ? "font-bold underline"
+                        : "text-[#4A90E2] hover:underline"
+                    }`}
+                  >
+                    {t}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         </div>
@@ -409,7 +437,9 @@ export default function ProjectsPage() {
               {routeClientId ? "Client Projects" : "Projects"}
             </h1>
             <p className="text-[#9A8F82] text-[14px]">
-              {routeClientId ? "Projects under selected client" : "Manage all projects"}
+              {routeClientId
+                ? "Projects under selected client"
+                : "Manage all projects"}
             </p>
           </div>
 
@@ -449,18 +479,27 @@ export default function ProjectsPage() {
                     <div className="flex justify-between items-start mb-5">
                       <div className="flex gap-4">
                         <div className="w-12 h-12 bg-[#F5F2ED] rounded-xl flex items-center justify-center font-bold text-[#C8922A] text-lg">
-                          {(p.client_name?.[0] ?? p.name?.[0] ?? "P").toUpperCase()}
+                          {(
+                            p.client_name?.[0] ??
+                            p.name?.[0] ??
+                            "P"
+                          ).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="font-bold text-[#1C1C1C] text-[16px]">{p.name}</h3>
-                          <p className="text-[#9A8F82] text-[13px]">{p.client_name ?? ""}</p>
+                          <h3 className="font-bold text-[#1C1C1C] text-[16px]">
+                            {p.name}
+                          </h3>
+                          <p className="text-[#9A8F82] text-[13px]">
+                            {p.client_name ?? ""}
+                          </p>
                         </div>
                       </div>
 
                       <span
                         className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
                         style={{
-                          backgroundColor: statusConfig[p.status]?.bg ?? "#F3F4F6",
+                          backgroundColor:
+                            statusConfig[p.status]?.bg ?? "#F3F4F6",
                           color: statusConfig[p.status]?.color ?? "#6B7280",
                         }}
                       >
@@ -470,15 +509,20 @@ export default function ProjectsPage() {
 
                     <div className="grid grid-cols-2 gap-y-4 text-[13px] text-[#6B6259]">
                       <div className="flex items-center gap-2">
-                        <MapPin size={16} className="text-[#9A8F82]" /> {p.property_type}
+                        <MapPin size={16} className="text-[#9A8F82]" />{" "}
+                        {p.property_type}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Maximize2 size={16} className="text-[#9A8F82]" /> {p.area_sqft || "0"} sqft
+                        <Maximize2 size={16} className="text-[#9A8F82]" />{" "}
+                        {p.area_sqft || "0"} sqft
                       </div>
                       <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-[#9A8F82]" /> {p.start_date || "-"}
+                        <Calendar size={16} className="text-[#9A8F82]" />{" "}
+                        {p.start_date || "-"}
                       </div>
-                      <div className="font-bold text-[#C8922A]">Budget: {p.budget_range || "N/A"}</div>
+                      <div className="font-bold text-[#C8922A]">
+                        Budget: {p.budget_range || "N/A"}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -496,7 +540,10 @@ export default function ProjectsPage() {
               <h2 className="text-[20px] font-bold text-[#1C1C1C]">
                 {formData.id ? "Edit Project" : "New Project"}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#9A8F82] hover:text-black">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-[#9A8F82] hover:text-black"
+              >
                 <X size={24} />
               </button>
             </div>
@@ -505,11 +552,15 @@ export default function ProjectsPage() {
               {/* ✅ Client dropdown only in global mode */}
               {!routeClientId && (
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Client</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Client
+                  </label>
                   <select
                     required
                     value={formData.client || ""}
-                    onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, client: e.target.value })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none bg-white"
                   >
                     <option value="" disabled>
@@ -526,21 +577,32 @@ export default function ProjectsPage() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Project Name</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Project Name
+                  </label>
                   <input
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none focus:border-[#C8922A]"
                     placeholder="Enter project name"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Property Type</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Property Type
+                  </label>
                   <select
                     value={formData.property_type}
-                    onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        property_type: e.target.value,
+                      })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none bg-white"
                   >
                     <option value="apartment">Apartment</option>
@@ -553,20 +615,28 @@ export default function ProjectsPage() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Area (sqft)</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Area (sqft)
+                  </label>
                   <input
                     type="number"
                     value={formData.area_sqft || ""}
-                    onChange={(e) => setFormData({ ...formData, area_sqft: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, area_sqft: e.target.value })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none focus:border-[#C8922A]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Budget Range</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Budget Range
+                  </label>
                   <input
                     value={formData.budget_range}
-                    onChange={(e) => setFormData({ ...formData, budget_range: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, budget_range: e.target.value })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none focus:border-[#C8922A]"
                     placeholder="e.g. 5-8 Lakhs"
                   />
@@ -575,31 +645,46 @@ export default function ProjectsPage() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Start Date</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    Start Date
+                  </label>
                   <input
                     type="date"
                     value={formData.start_date || ""}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, start_date: e.target.value })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">End Date</label>
+                  <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                    End Date
+                  </label>
                   <input
                     type="date"
                     value={formData.expected_end_date || ""}
-                    onChange={(e) => setFormData({ ...formData, expected_end_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        expected_end_date: e.target.value,
+                      })
+                    }
                     className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">Status</label>
+                <label className="text-[12px] font-bold text-[#6B6259] uppercase tracking-wide">
+                  Status
+                </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
                   className="w-full border border-[#EDE8DF] rounded-xl p-3 text-[14px] outline-none bg-white"
                 >
                   <option value="active">Active</option>

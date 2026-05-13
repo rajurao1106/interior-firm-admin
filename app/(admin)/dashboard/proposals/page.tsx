@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -34,24 +33,27 @@ import {
   type Proposal,
   type ProposalFormData,
   type ProposalTemplate,
-} from "@/services/proposalService";
+} from "@/backup/services/proposalService";
 
 import {
   getAllClients,
   createClient,
   type Client,
   type ClientFormData,
-} from "@/services/clientService";
+} from "@/backup/services/clientService";
 
 import {
   getProjectsByClient,
   createProject,
   type Project,
-} from "@/services/projectService";
+} from "@/backup/services/projectService";
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+const statusConfig: Record<
+  string,
+  { label: string; color: string; bg: string }
+> = {
   draft: { label: "Draft", color: "#6B6259", bg: "#F5F2ED" },
   sent: { label: "Sent", color: "#3B82F6", bg: "#EFF6FF" },
   accepted: { label: "Accepted", color: "#10B981", bg: "#ECFDF5" },
@@ -88,7 +90,7 @@ function QuickAddClientModal({
     gstin: "",
     state: "",
     country: "India",
-    city: "", 
+    city: "",
     lead_source: "",
     lead_source_other: "",
   });
@@ -124,7 +126,10 @@ function QuickAddClientModal({
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+        <form
+          onSubmit={handleSave}
+          className="p-5 space-y-3 max-h-[70vh] overflow-y-auto"
+        >
           {error && (
             <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-lg">
               {error}
@@ -174,7 +179,9 @@ function QuickAddClientModal({
               required
               rows={2}
               value={form.billing_address}
-              onChange={(e) => setForm({ ...form, billing_address: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, billing_address: e.target.value })
+              }
               className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A] resize-none"
             />
           </div>
@@ -186,7 +193,9 @@ function QuickAddClientModal({
             <textarea
               rows={2}
               value={form.site_address}
-              onChange={(e) => setForm({ ...form, site_address: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, site_address: e.target.value })
+              }
               className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A] resize-none"
             />
           </div>
@@ -207,7 +216,11 @@ function QuickAddClientModal({
             disabled={saving}
             className="w-full bg-[#C8922A] hover:bg-[#B07A20] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-[13px] disabled:opacity-60"
           >
-            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            {saving ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Save size={16} />
+            )}
             Save Client
           </button>
         </form>
@@ -290,9 +303,14 @@ function QuickAddProjectModal({
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
+        <form
+          onSubmit={handleSave}
+          className="p-5 space-y-3 max-h-[70vh] overflow-y-auto"
+        >
           {error && (
-            <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>
+            <p className="text-[12px] text-red-500 bg-red-50 p-3 rounded-lg">
+              {error}
+            </p>
           )}
 
           <div>
@@ -325,7 +343,9 @@ function QuickAddProjectModal({
               </label>
               <select
                 value={form.property_type}
-                onChange={(e) => setForm({ ...form, property_type: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, property_type: e.target.value })
+                }
                 className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
               >
                 {["apartment", "villa", "office", "commercial"].map((v) => (
@@ -342,14 +362,18 @@ function QuickAddProjectModal({
               </label>
               <select
                 value={form.style_category}
-                onChange={(e) => setForm({ ...form, style_category: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, style_category: e.target.value })
+                }
                 className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
               >
-                {["modern", "traditional", "minimalist", "contemporary"].map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
+                {["modern", "traditional", "minimalist", "contemporary"].map(
+                  (v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
           </div>
@@ -362,7 +386,9 @@ function QuickAddProjectModal({
               <input
                 type="number"
                 value={form.area_sqft ?? ""}
-                onChange={(e) => setForm({ ...form, area_sqft: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, area_sqft: e.target.value })
+                }
                 className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
               />
             </div>
@@ -373,7 +399,9 @@ function QuickAddProjectModal({
               </label>
               <input
                 value={form.budget_range}
-                onChange={(e) => setForm({ ...form, budget_range: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, budget_range: e.target.value })
+                }
                 className="w-full border border-[#EDE8DF] rounded-xl p-2.5 text-[13px] outline-none bg-[#FAF8F5] focus:border-[#C8922A]"
               />
             </div>
@@ -384,7 +412,11 @@ function QuickAddProjectModal({
             disabled={saving}
             className="w-full bg-[#C8922A] hover:bg-[#B07A20] text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-[13px] disabled:opacity-60"
           >
-            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            {saving ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Save size={16} />
+            )}
             Save Project
           </button>
         </form>
@@ -533,10 +565,14 @@ export default function ProposalsPage() {
       title: formData.title,
       status: formData.status ?? "draft",
 
-      content: showTemplate ? (formData.content || undefined) : formData.content,
-      use_template: showTemplate ? (formData.use_template || undefined) : undefined,
-      valid_until: showValidUntil ? (formData.valid_until || undefined) : undefined,
-      notes: showNotes ? (formData.notes || undefined) : undefined,
+      content: showTemplate ? formData.content || undefined : formData.content,
+      use_template: showTemplate
+        ? formData.use_template || undefined
+        : undefined,
+      valid_until: showValidUntil
+        ? formData.valid_until || undefined
+        : undefined,
+      notes: showNotes ? formData.notes || undefined : undefined,
     };
 
     try {
@@ -562,7 +598,10 @@ export default function ProposalsPage() {
     }
   };
 
-  const markStatus = async (id: string, st: "sent" | "accepted" | "rejected") => {
+  const markStatus = async (
+    id: string,
+    st: "sent" | "accepted" | "rejected",
+  ) => {
     setActionId(`${st}_${id}`);
     try {
       await updateProposalStatus(id, st);
@@ -580,7 +619,9 @@ export default function ProposalsPage() {
       const blob = await downloadProposalPdf(p.id);
       const filename = `${(p.prop_number || p.id).replace(/[^\w.-]+/g, "_")}.pdf`;
 
-      const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+      const url = URL.createObjectURL(
+        new Blob([blob], { type: "application/pdf" }),
+      );
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
@@ -608,7 +649,9 @@ export default function ProposalsPage() {
     ];
 
     const csv = rows
-      .map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
+      .map((r) =>
+        r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","),
+      )
       .join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -673,7 +716,8 @@ export default function ProposalsPage() {
   }, [proposals, searchQuery]);
 
   const selectedClientName =
-    clients.find((c) => c.id === selectedClientId)?.full_name || "Selected Client";
+    clients.find((c) => c.id === selectedClientId)?.full_name ||
+    "Selected Client";
 
   return (
     <div className="min-h-screen bg-[#FCFBF9] p-6 md:p-10 text-[#1C1C1C]">
@@ -698,7 +742,9 @@ export default function ProposalsPage() {
       <div className="flex justify-between items-end mb-10">
         <div>
           <h1 className="text-3xl font-black tracking-tighter">Proposals</h1>
-          <p className="text-[#9A8F82] font-medium">Create and manage client proposals</p>
+          <p className="text-[#9A8F82] font-medium">
+            Create and manage client proposals
+          </p>
         </div>
         <button
           onClick={openNew}
@@ -712,7 +758,10 @@ export default function ProposalsPage() {
       <div className="bg-white border border-[#EDE8DF] rounded-[32px] overflow-hidden shadow-sm">
         <div className="p-6 border-b border-[#EDE8DF]">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A8F82]" size={18} />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A8F82]"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search by client, number, or title..."
@@ -750,22 +799,33 @@ export default function ProposalsPage() {
                 </tr>
               ) : (
                 filtered.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#FCFBF9] transition-colors group">
+                  <tr
+                    key={p.id}
+                    className="hover:bg-[#FCFBF9] transition-colors group"
+                  >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-[#FDF3E3] rounded-xl flex items-center justify-center text-[#C8922A]">
                           <FileText size={18} />
                         </div>
                         <div>
-                          <p className="font-bold text-[14px]">#{p.prop_number ?? "—"}</p>
-                          <p className="text-[12px] text-[#9A8F82]">{p.title}</p>
+                          <p className="font-bold text-[14px]">
+                            #{p.prop_number ?? "—"}
+                          </p>
+                          <p className="text-[12px] text-[#9A8F82]">
+                            {p.title}
+                          </p>
                         </div>
                       </div>
                     </td>
 
                     <td className="px-8 py-6">
-                      <p className="font-bold text-[14px]">{p.client_name || "—"}</p>
-                      <p className="text-[12px] text-[#6B6259]">{p.project_name || "—"}</p>
+                      <p className="font-bold text-[14px]">
+                        {p.client_name || "—"}
+                      </p>
+                      <p className="text-[12px] text-[#6B6259]">
+                        {p.project_name || "—"}
+                      </p>
                     </td>
 
                     <td className="px-8 py-6">
@@ -780,7 +840,9 @@ export default function ProposalsPage() {
                       </span>
                     </td>
 
-                    <td className="px-8 py-6 text-[13px] text-[#6B6259]">{p.valid_until || "—"}</td>
+                    <td className="px-8 py-6 text-[13px] text-[#6B6259]">
+                      {p.valid_until || "—"}
+                    </td>
 
                     <td className="px-8 py-6 text-right">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -906,16 +968,27 @@ export default function ProposalsPage() {
           <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh]">
             <div className="p-6 border-b border-[#EDE8DF] flex justify-between items-center bg-[#FCFBF9] rounded-t-[32px]">
               <div>
-                <h2 className="font-black text-xl">{editId ? "Edit Proposal" : "New Proposal"}</h2>
-                <p className="text-[12px] text-[#9A8F82] mt-0.5">Client → Project select karo</p>
+                <h2 className="font-black text-xl">
+                  {editId ? "Edit Proposal" : "New Proposal"}
+                </h2>
+                <p className="text-[12px] text-[#9A8F82] mt-0.5">
+                  Client → Project select karo
+                </p>
               </div>
-              <button onClick={closeModal} className="text-[#9A8F82] hover:text-black">
+              <button
+                onClick={closeModal}
+                className="text-[#9A8F82] hover:text-black"
+              >
                 <X size={24} />
               </button>
             </div>
 
             <div className="p-8 overflow-y-auto flex-1">
-              <form onSubmit={handleSubmit} className="space-y-6" id="proposal-form">
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-6"
+                id="proposal-form"
+              >
                 {/* Client */}
                 <div className="space-y-1.5">
                   <label className="text-[12px] font-black text-[#6B6259] uppercase tracking-wider">
@@ -970,11 +1043,15 @@ export default function ProposalsPage() {
                         required
                         disabled={!selectedClientId}
                         value={formData.project}
-                        onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, project: e.target.value })
+                        }
                         className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] appearance-none disabled:opacity-60"
                       >
                         <option value="">
-                          {selectedClientId ? "Select a project" : "Select client first"}
+                          {selectedClientId
+                            ? "Select a project"
+                            : "Select client first"}
                         </option>
                         {projects.map((p) => (
                           <option key={p.id} value={p.id}>
@@ -1007,7 +1084,9 @@ export default function ProposalsPage() {
                   <input
                     required
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                     className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A]"
                   />
                 </div>
@@ -1019,7 +1098,9 @@ export default function ProposalsPage() {
                     onClick={() => setShowTemplate((v) => !v)}
                     className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
                   >
-                    <span className="text-[13px] font-semibold text-[#6B6259]">Template</span>
+                    <span className="text-[13px] font-semibold text-[#6B6259]">
+                      Template
+                    </span>
                     <span className="text-[11px] text-[#C8922A] font-bold">
                       {showTemplate ? "Remove" : "+ Add"}
                     </span>
@@ -1058,7 +1139,9 @@ export default function ProposalsPage() {
                     required={!showTemplate}
                     rows={6}
                     value={formData.content ?? ""}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, content: e.target.value })
+                    }
                     className="w-full p-3 bg-[#FAF8F5] border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] resize-none font-mono"
                   />
                 </div>
@@ -1070,7 +1153,9 @@ export default function ProposalsPage() {
                     onClick={() => setShowValidUntil((v) => !v)}
                     className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
                   >
-                    <span className="text-[13px] font-semibold text-[#6B6259]">Valid Until</span>
+                    <span className="text-[13px] font-semibold text-[#6B6259]">
+                      Valid Until
+                    </span>
                     <span className="text-[11px] text-[#C8922A] font-bold">
                       {showValidUntil ? "Remove" : "+ Add"}
                     </span>
@@ -1080,7 +1165,12 @@ export default function ProposalsPage() {
                       <input
                         type="date"
                         value={formData.valid_until ?? ""}
-                        onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            valid_until: e.target.value,
+                          })
+                        }
                         className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A]"
                       />
                     </div>
@@ -1094,7 +1184,9 @@ export default function ProposalsPage() {
                     onClick={() => setShowNotes((v) => !v)}
                     className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-[#F5F2ED]"
                   >
-                    <span className="text-[13px] font-semibold text-[#6B6259]">Internal Notes</span>
+                    <span className="text-[13px] font-semibold text-[#6B6259]">
+                      Internal Notes
+                    </span>
                     <span className="text-[11px] text-[#C8922A] font-bold">
                       {showNotes ? "Remove" : "+ Add"}
                     </span>
@@ -1104,7 +1196,9 @@ export default function ProposalsPage() {
                       <textarea
                         rows={3}
                         value={formData.notes ?? ""}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, notes: e.target.value })
+                        }
                         className="w-full p-3 bg-white border border-[#EDE8DF] rounded-xl outline-none focus:border-[#C8922A] resize-none"
                       />
                     </div>
@@ -1127,7 +1221,11 @@ export default function ProposalsPage() {
                 disabled={saving}
                 className="flex-1 py-3 bg-[#C8922A] text-white font-black rounded-2xl hover:bg-[#B07A20] flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                {saving ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <Save size={20} />
+                )}
                 {editId ? "Update Proposal" : "Create Proposal"}
               </button>
             </div>

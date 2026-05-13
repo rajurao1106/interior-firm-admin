@@ -19,7 +19,7 @@ export default function QuotationEditorPage({ params }: { params: Promise<{ id: 
 
   useEffect(() => {
     if (id === "new") { setLoading(false); return; }
-    fetch(`http://127.0.0.1:8000/api/v1/quotations/${id}/`)
+    fetch(`https://interior-firm-crm-be.onrender.com/api/v1/quotations/${id}/`)
       .then(res => res.json())
       .then(data => {
         setQuotation(data);
@@ -40,7 +40,7 @@ export default function QuotationEditorPage({ params }: { params: Promise<{ id: 
   const handleSave = async () => {
     setSaving(true);
     const isNew = id === "new";
-    const url = isNew ? "http://127.0.0.1:8000/api/v1/quotations/" : `http://127.0.0.1:8000/api/v1/quotations/${id}/`;
+    const url = isNew ? "https://interior-firm-crm-be.onrender.com/api/v1/quotations/" : `https://interior-firm-crm-be.onrender.com/api/v1/quotations/${id}/`;
     
     const payload = {
       ...quotation,
